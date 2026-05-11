@@ -1,0 +1,23 @@
+{
+  "name": "Tobebe",
+  "short_name": "Tobebe",
+  "description": "Безопасный мессенджер",
+  "start_url": "/",
+  "display": "standalone",
+  "theme_color": "#580005",
+  "background_color": "#0A0A0C",
+  "icons": [
+    {
+      "src": "/icons/icon-192x192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/icons/icon-512x512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
+}

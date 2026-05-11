@@ -1,0 +1,3807 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <meta name="referrer" content="no-referrer">
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; base-uri 'self'; object-src 'none'; frame-ancestors 'none'; form-action 'self'; connect-src 'self' https://tobebe.online wss://tobebe.online; img-src 'self' data: blob: https://tobebe.online; media-src 'self' data: blob: https://tobebe.online; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline' https://fonts.cdnfonts.com; font-src 'self' data: https://fonts.cdnfonts.com; worker-src 'self' blob:; manifest-src 'self'; upgrade-insecure-requests; block-all-mixed-content">
+    <title>Tobebe · канал</title>
+    <meta name="theme-color" content="#0A0A0C">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        html, body {
+            height: 100%;
+            background: #0A0A0C;
+            font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'SF Pro Display', 'Segoe UI', sans-serif;
+            color: #FFFFFF;
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+        }
+
+        body {
+            overflow-x: hidden;
+            overflow-y: hidden;
+        }
+
+        @keyframes fadeInUp {
+            from { opacity: 0; transform: translateY(30px); filter: blur(8px); }
+            to { opacity: 1; transform: translateY(0); filter: blur(0); }
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; backdrop-filter: blur(0px); }
+            to { opacity: 1; backdrop-filter: blur(24px); }
+        }
+
+        @keyframes slideUp {
+            from { transform: translateY(100%); }
+            to { transform: translateY(0); }
+        }
+
+        .channel-screen {
+            height: 100dvh;
+            width: 100%;
+            background: #0A0A0C;
+            display: flex;
+            flex-direction: column;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .channel-header {
+            position: sticky;
+            top: 0;
+            z-index: 30;
+            padding: max(16px, env(safe-area-inset-top)) 16px 12px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            background: rgba(10, 10, 12, 0.85);
+            backdrop-filter: blur(20px) saturate(180%);
+            border-bottom: none;
+        }
+
+        .back-btn, .edit-top-btn {
+            width: 44px;
+            height: 44px;
+            border-radius: 22px;
+            background: rgba(26, 29, 36, 0.8);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            color: #fff;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.3s cubic-bezier(0.2, 0.9, 0.4, 1.1);
+        }
+
+        .edit-top-btn {
+            width: auto;
+            padding: 0 20px;
+            gap: 8px;
+            font-size: 14px;
+            font-weight: 500;
+            background: rgba(255, 255, 255, 0.08);
+            border-color: rgba(255, 255, 255, 0.15);
+        }
+
+        .edit-top-btn svg {
+            width: 16px;
+            height: 16px;
+        }
+
+        .back-btn:active, .edit-top-btn:active {
+            transform: scale(0.94);
+            background: #FFFFFF;
+            color: #000000;
+            border-color: #FFFFFF;
+        }
+
+        .back-btn svg {
+            width: 22px;
+            height: 22px;
+            transform: rotate(180deg);
+        }
+
+        .header-title {
+            font-size: 18px;
+            font-weight: 600;
+            color: #FFFFFF;
+            opacity: 0;
+            transition: opacity 0.2s;
+        }
+
+        .channel-content {
+            flex: 1;
+            overflow-y: auto;
+            padding: 20px 16px 32px;
+            -webkit-overflow-scrolling: touch;
+        }
+
+        .avatar-section {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 8px 0 16px;
+            transition: all 0.3s cubic-bezier(0.2, 0.9, 0.4, 1.1);
+            transform-origin: center top;
+            will-change: transform, padding;
+            animation: fadeInUp 0.6s cubic-bezier(0.2, 0.9, 0.4, 1.1);
+        }
+
+        .avatar-section.expanded .avatar-box {
+            width: min(280px, 70vw);
+            height: min(280px, 70vw);
+            border-radius: 32px;
+            margin-bottom: 16px;
+            border-width: 3px;
+        }
+
+        .avatar-section.fullscreen {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 1000;
+            justify-content: center;
+            align-items: center;
+            background: #0A0A0C;
+            margin: 0;
+            padding: 0;
+            animation: fadeIn 0.3s ease;
+        }
+
+        .avatar-section.fullscreen .avatar-box {
+            width: min(82vw, 540px);
+            height: min(82vw, 540px);
+            border-radius: 28px;
+            border: none;
+            margin: 0;
+            box-shadow: none;
+            background: transparent;
+        }
+
+        .avatar-section.fullscreen .stats-row,
+        .avatar-section.fullscreen .actions {
+            opacity: 0;
+            pointer-events: none;
+        }
+
+        .avatar-section.shrink {
+            transform: scale(0.85);
+            margin-top: -30px;
+            margin-bottom: -20px;
+        }
+
+        .avatar-wrapper {
+            position: relative;
+            margin-bottom: 16px;
+        }
+
+        .avatar-box {
+            width: 120px;
+            height: 120px;
+            border-radius: 60px;
+            overflow: hidden;
+            background: linear-gradient(135deg, #2A2D38, #1A1C24);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 48px;
+            font-weight: 600;
+            border: 2px solid rgba(255, 255, 255, 0.2);
+            box-shadow: 0 10px 30px -5px rgba(0,0,0,0.5);
+            transition: all 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
+            transform-origin: center;
+            margin-bottom: 12px;
+            will-change: transform, border-radius, width, height, border-color;
+        }
+
+        .avatar-box img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .channel-name {
+            margin-top: 8px;
+            text-align: center;
+        }
+
+        .name-text {
+            font-size: 28px;
+            font-weight: 620;
+            letter-spacing: -0.3px;
+            color: #FFFFFF;
+        }
+
+        .stats-row {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+            margin-top: 8px;
+            padding: 6px 16px;
+            background: rgba(255, 255, 255, 0.04);
+            border-radius: 40px;
+            width: fit-content;
+            margin-left: auto;
+            margin-right: auto;
+            backdrop-filter: blur(10px);
+            border: 0.5px solid rgba(255, 255, 255, 0.05);
+        }
+
+        .stats-icon {
+            width: 16px;
+            height: 16px;
+            color: #8A8F99;
+        }
+
+        .stats-count {
+            font-size: 14px;
+            font-weight: 600;
+            color: #FFFFFF;
+        }
+
+        .stats-label {
+            font-size: 13px;
+            color: #8A8F99;
+        }
+
+        .actions {
+            margin: 24px 0 20px;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            justify-content: center;
+        }
+
+        .action-btn {
+            border-radius: 40px;
+            background: rgba(22, 24, 29, 0.8);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.06);
+            color: #fff;
+            padding: 10px 20px;
+            font-size: 13px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.25s cubic-bezier(0.34, 1.2, 0.64, 1);
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .action-btn svg {
+            width: 16px;
+            height: 16px;
+            stroke: currentColor;
+            stroke-width: 1.8;
+            fill: none;
+        }
+
+        .action-btn:active {
+            transform: scale(0.96);
+            background: #FFFFFF;
+            color: #000000;
+        }
+
+        .info-card {
+            border-radius: 28px;
+            background: rgba(18, 20, 26, 0.6);
+            backdrop-filter: blur(20px);
+            border: 0.5px solid rgba(255, 255, 255, 0.05);
+            overflow: hidden;
+            margin-bottom: 20px;
+        }
+
+        .info-row {
+            padding: 16px 20px;
+            border-bottom: 0.5px solid rgba(255, 255, 255, 0.03);
+            cursor: pointer;
+            transition: background 0.15s;
+        }
+
+        .info-row:active {
+            background: rgba(255, 255, 255, 0.05);
+        }
+
+        .info-row:last-child {
+            border-bottom: none;
+        }
+
+        .info-label {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 11px;
+            color: #8A8F99;
+            text-transform: uppercase;
+            font-weight: 600;
+            letter-spacing: 0.5px;
+            margin-bottom: 6px;
+        }
+
+        .info-label svg {
+            width: 13px;
+            height: 13px;
+            stroke: #8A8F99;
+        }
+
+        .info-value {
+            font-size: 14px;
+            color: #E8EDF5;
+            word-break: break-word;
+            white-space: pre-wrap;
+            padding-left: 22px;
+            line-height: 1.4;
+        }
+
+        .link-value {
+            color: #FFFFFF;
+            font-weight: 500;
+            text-decoration: underline;
+            text-decoration-thickness: 1px;
+            text-underline-offset: 4px;
+        }
+
+        .media-slider-section {
+            margin: 8px 0 10px;
+            background: transparent;
+            border-radius: 28px;
+            padding: 0;
+            border: none;
+            position: relative;
+        }
+
+        .glass-tab-bar {
+            background: rgba(22, 24, 29, 0.6);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border-radius: 40px;
+            padding: 4px;
+            margin: 0 0 12px;
+            display: flex;
+            gap: 4px;
+            border: 1px solid rgba(255, 255, 255, 0.06);
+            overflow-x: auto;
+            scrollbar-width: none;
+            -webkit-overflow-scrolling: touch;
+        }
+
+        .glass-tab-bar::-webkit-scrollbar {
+            display: none;
+        }
+
+        .glass-tab {
+            flex: 1;
+            padding: 12px 8px;
+            background: transparent;
+            border: none;
+            border-radius: 32px;
+            color: #8A8F99;
+            font-size: 13px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);
+            white-space: nowrap;
+            text-align: center;
+        }
+
+        .glass-tab.active {
+            background: rgba(88, 0, 5, 0.7);
+            backdrop-filter: blur(10px);
+            color: #FFFFFF;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+        }
+
+        .glass-tab:active {
+            transform: scale(0.96);
+            background: rgba(255, 255, 255, 0.1);
+        }
+
+        .media-content {
+            min-height: 150px;
+            max-height: 420px;
+            overflow-y: auto;
+            -webkit-overflow-scrolling: touch;
+            padding: 4px 0;
+        }
+
+        .media-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 8px;
+        }
+
+        .media-grid-item {
+            position: relative;
+            border-radius: 14px;
+            overflow: hidden;
+            aspect-ratio: 1 / 1;
+            background: rgba(255,255,255,0.06);
+            border: 1px solid rgba(255,255,255,0.08);
+            cursor: pointer;
+        }
+
+        .media-grid-item img,
+        .media-grid-item video {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .media-grid-item.video::after {
+            content: '';
+            position: absolute;
+            inset: auto 10px 10px auto;
+            width: 24px;
+            height: 24px;
+            border-radius: 999px;
+            background: rgba(0,0,0,0.58);
+            border: 1px solid rgba(255,255,255,0.25);
+            box-shadow: 0 6px 16px rgba(0,0,0,0.35);
+        }
+
+        .voice-list,
+        .links-list {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .voice-item,
+        .link-item {
+            border-radius: 16px;
+            padding: 12px 14px;
+            background: rgba(20, 24, 33, 0.72);
+            border: 1px solid rgba(255,255,255,0.08);
+        }
+
+        .voice-item audio {
+            width: 100%;
+            margin-top: 8px;
+        }
+
+        .item-meta {
+            font-size: 12px;
+            color: #AAB0BE;
+        }
+
+        .link-item a {
+            color: #fff;
+            font-size: 14px;
+            text-decoration: underline;
+            text-underline-offset: 4px;
+            word-break: break-all;
+        }
+
+        .media-empty {
+            min-height: 130px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            color: #A8AFBD;
+            gap: 8px;
+        }
+
+        .image-viewer-modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.98);
+            backdrop-filter: blur(18px);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 4200;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.35s ease;
+            touch-action: none;
+        }
+
+        .image-viewer-modal.show {
+            opacity: 1;
+            pointer-events: all;
+        }
+
+        .image-viewer-content {
+            position: relative;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+            transform: translateY(0) scale(1);
+            transition: transform 0.24s cubic-bezier(0.22, 1, 0.36, 1);
+        }
+
+        .image-viewer-image {
+            max-width: 100%;
+            max-height: 100%;
+            object-fit: contain;
+            transform-origin: center;
+            will-change: transform;
+            touch-action: none;
+            user-select: none;
+            -webkit-user-drag: none;
+            cursor: grab;
+        }
+
+        .image-viewer-image:active {
+            cursor: grabbing;
+        }
+
+        .image-viewer-image.zoomed {
+            cursor: zoom-out;
+        }
+
+        .iv-back,
+        .iv-menu,
+        .iv-top-info,
+        .iv-popup {
+            position: absolute;
+            z-index: 12;
+        }
+
+        .iv-glass {
+            background: linear-gradient(145deg, rgba(255,255,255,0.22), rgba(255,255,255,0.08) 55%, rgba(255,255,255,0.04));
+            border: 1px solid rgba(255,255,255,0.2);
+            box-shadow: 0 8px 22px rgba(0,0,0,0.35), inset 0 1px 0 rgba(255,255,255,0.2), inset 0 -1px 0 rgba(255,255,255,0.06);
+            backdrop-filter: blur(18px) saturate(170%);
+            -webkit-backdrop-filter: blur(18px) saturate(170%);
+            color: #fff;
+        }
+
+        .iv-back,
+        .iv-menu {
+            width: 46px;
+            height: 46px;
+            border-radius: 16px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            top: max(16px, env(safe-area-inset-top));
+            border: none;
+            cursor: pointer;
+        }
+
+        .iv-back {
+            left: 14px;
+        }
+
+        .iv-menu {
+            right: 14px;
+        }
+
+        .iv-top-info {
+            left: 50%;
+            transform: translateX(-50%);
+            top: max(16px, env(safe-area-inset-top));
+            padding: 8px 14px;
+            border-radius: 9999px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            max-width: min(80%, 560px);
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            pointer-events: none;
+        }
+
+        .iv-top-info .iv-sender {
+            font-size: 13px;
+            font-weight: 700;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .iv-top-info .iv-dot {
+            margin: 0 6px;
+            opacity: 0.8;
+        }
+
+        .iv-top-info .iv-time {
+            font-size: 12px;
+            opacity: 0.85;
+        }
+
+        .iv-popup {
+            right: 14px;
+            top: calc(max(16px, env(safe-area-inset-top)) + 54px);
+            min-width: 180px;
+            border-radius: 14px;
+            padding: 8px;
+            background: rgba(14,16,22,0.92);
+            border: 1px solid rgba(255,255,255,0.12);
+            display: none;
+        }
+
+        .iv-popup.open {
+            display: block;
+        }
+
+        .iv-popup button {
+            width: 100%;
+            background: transparent;
+            border: none;
+            color: #E9ECF6;
+            padding: 10px 12px;
+            border-radius: 10px;
+            text-align: left;
+            cursor: pointer;
+            font-size: 14px;
+        }
+
+        .iv-popup button:hover {
+            background: rgba(255,255,255,0.08);
+        }
+
+        .image-viewer-modal.chrome-hidden .iv-glass,
+        .image-viewer-modal.chrome-hidden .iv-popup {
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.2s ease;
+        }
+
+        .image-viewer-modal.closing {
+            opacity: 0 !important;
+            transition: opacity 0.2s ease;
+        }
+
+        .media-viewer-entry-clone {
+            position: fixed;
+            margin: 0;
+            object-fit: cover;
+            border-radius: 14px;
+            pointer-events: none;
+            z-index: 4300;
+            box-shadow: 0 30px 64px rgba(0, 0, 0, 0.48);
+            will-change: transform, opacity, border-radius;
+        }
+
+        .video-player-modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: radial-gradient(circle at 20% 20%, rgba(38, 40, 47, 0.65), rgba(0, 0, 0, 0.96));
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            z-index: 4200;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            opacity: 0;
+            pointer-events: none;
+            visibility: hidden;
+            transition: opacity 0.3s ease;
+        }
+
+        .video-player-modal.show {
+            opacity: 1;
+            pointer-events: all;
+            visibility: visible;
+        }
+
+        .video-player-container {
+            width: 100%;
+            height: 100%;
+            position: relative;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .video-player-element {
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+            transform-origin: center center;
+            will-change: transform;
+            touch-action: none;
+        }
+
+        .video-player-controls {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: linear-gradient(to top, rgba(0,0,0,0.8), transparent);
+            padding: 20px;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            opacity: 0;
+            transform: translateY(14px);
+            transition: opacity 0.25s ease, transform 0.25s ease;
+            pointer-events: none;
+        }
+
+        .video-player-container.show-ui .video-player-controls {
+            opacity: 1;
+            transform: translateY(0);
+            pointer-events: all;
+        }
+
+        .video-player-container:not(.show-ui) .iv-top-info,
+        .video-player-container:not(.show-ui) .iv-back,
+        .video-player-container:not(.show-ui) .video-player-menu,
+        .video-player-container:not(.show-ui) .iv-popup {
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.2s ease;
+        }
+
+        .video-player-center {
+            position: absolute;
+            inset: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            pointer-events: none;
+            z-index: 3;
+        }
+
+        .video-player-center-btn {
+            width: 82px;
+            height: 82px;
+            border-radius: 41px;
+            border: 1px solid rgba(255, 255, 255, 0.26);
+            background: rgba(18, 20, 26, 0.62);
+            color: #FFFFFF;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 15px 30px rgba(0, 0, 0, 0.35);
+            transform: scale(0.92);
+            opacity: 0;
+            transition: all 0.26s cubic-bezier(0.2, 0.9, 0.3, 1);
+            pointer-events: auto;
+            cursor: pointer;
+            border: none;
+        }
+
+        .video-player-container.show-ui .video-player-center-btn {
+            opacity: 1;
+            transform: scale(1);
+        }
+
+        .video-player-center-btn.pop {
+            animation: centerPlayPop 0.34s cubic-bezier(0.22, 1, 0.36, 1);
+        }
+
+        @keyframes centerPlayPop {
+            0% { transform: scale(0.78); }
+            55% { transform: scale(1.16); }
+            100% { transform: scale(1); }
+        }
+
+        .video-player-hit {
+            position: absolute;
+            inset: 0;
+            z-index: 2;
+            pointer-events: none;
+        }
+
+        .video-player-play {
+            width: 44px;
+            height: 44px;
+            border-radius: 22px;
+            background: #580005;
+            border: none;
+            color: #FFFFFF;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            flex-shrink: 0;
+        }
+
+        .video-player-progress {
+            flex: 1;
+            height: 6px;
+            border-radius: 999px;
+            background: rgba(255,255,255,0.2);
+            cursor: pointer;
+            overflow: visible;
+            position: relative;
+        }
+
+        .video-player-progress::before {
+            content: '';
+            position: absolute;
+            inset: -10px 0;
+        }
+
+        .video-player-progress-fill {
+            width: 0%;
+            height: 100%;
+            background: linear-gradient(90deg, #7f0008, #b30b1a);
+            border-radius: 999px;
+            transition: width 0.13s linear;
+            box-shadow: 0 0 0 1px rgba(255,255,255,0.12), 0 6px 18px rgba(179, 11, 26, 0.42);
+            position: relative;
+        }
+
+        .video-player-progress-fill::after {
+            content: '';
+            position: absolute;
+            right: -7px;
+            top: -4px;
+            width: 14px;
+            height: 14px;
+            border-radius: 999px;
+            opacity: 1;
+            background: radial-gradient(circle at 32% 24%, rgba(255,255,255,0.9), rgba(255,255,255,0.4) 38%, rgba(179,11,26,0.95));
+            border: 1px solid rgba(255,255,255,0.45);
+            transform: scale(0.85);
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+            box-shadow: 0 8px 20px rgba(0,0,0,0.42);
+        }
+
+        .video-player-progress:hover .video-player-progress-fill::after,
+        .video-player-progress.dragging .video-player-progress-fill::after {
+            transform: scale(1);
+        }
+
+        .video-player-time {
+            font-size: 13px;
+            color: rgba(255,255,255,0.9);
+            min-width: 90px;
+            text-align: right;
+        }
+
+        .video-player-center-btn,
+        .video-player-play {
+            backdrop-filter: blur(15px) saturate(165%);
+            -webkit-backdrop-filter: blur(15px) saturate(165%);
+            border: 1px solid rgba(255, 255, 255, 0.26);
+            box-shadow: inset 0 1px 0 rgba(255,255,255,0.35), 0 14px 34px rgba(0, 0, 0, 0.38);
+            background: radial-gradient(circle at 26% 22%, rgba(255,255,255,0.35), rgba(255,255,255,0.1) 50%, rgba(88,0,5,0.7));
+            transition: transform 0.22s cubic-bezier(0.22, 1, 0.36, 1), opacity 0.2s ease, box-shadow 0.22s ease;
+        }
+
+        .video-player-center-btn.pressed,
+        .video-player-play.pressed {
+            transform: scale(1.14);
+            box-shadow: inset 0 1px 0 rgba(255,255,255,0.45), 0 22px 42px rgba(0, 0, 0, 0.45);
+        }
+
+        .video-skip-feedback {
+            position: absolute;
+            left: 50%;
+            top: 50%;
+            transform: translate(-50%, -50%) scale(1.08);
+            padding: 12px 22px;
+            border-radius: 999px;
+            background: rgba(18,20,26,0.62);
+            border: 1px solid rgba(255,255,255,0.24);
+            color: #fff;
+            font-size: 18px;
+            font-weight: 700;
+            letter-spacing: 0.03em;
+            pointer-events: none;
+            opacity: 0;
+            transition: opacity 0.2s ease, transform 0.2s ease;
+            z-index: 12;
+            backdrop-filter: blur(16px);
+        }
+
+        .video-skip-feedback.show {
+            opacity: 1;
+            transform: translate(-50%, -50%) scale(1);
+        }
+
+       
+        .editor-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.92);
+            backdrop-filter: blur(32px);
+            z-index: 200;
+            display: none;
+            align-items: flex-end;
+            justify-content: center;
+            animation: fadeIn 0.3s ease;
+        }
+
+        .editor-overlay.show {
+            display: flex;
+        }
+
+        .editor-card {
+            width: 100%;
+            max-height: 85dvh;
+            background: #000000;
+            border-top-left-radius: 32px;
+            border-top-right-radius: 32px;
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+            overflow: hidden;
+            animation: slideUp 0.45s cubic-bezier(0.16, 1, 0.3, 1);
+            display: flex;
+            flex-direction: column;
+            box-shadow: 0 -25px 50px rgba(0, 0, 0, 0.8);
+        }
+
+        .editor-header {
+            padding: 20px 20px 12px;
+            border-bottom: 0.5px solid rgba(255, 255, 255, 0.08);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-shrink: 0;
+            background: #000000;
+        }
+
+        .editor-header h3 {
+            font-size: 20px;
+            font-weight: 600;
+            color: #FFFFFF;
+            letter-spacing: -0.3px;
+        }
+
+        .editor-close {
+            width: 36px;
+            height: 36px;
+            border-radius: 18px;
+            background: rgba(255, 255, 255, 0.05);
+            border: 0.5px solid rgba(255, 255, 255, 0.1);
+            color: #8A8F99;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .editor-close:active {
+            background: #FFFFFF;
+            color: #000000;
+            transform: rotate(90deg);
+        }
+
+        .editor-tabs {
+            display: flex;
+            padding: 12px 16px 0;
+            gap: 8px;
+            background: #000000;
+            border-bottom: 0.5px solid rgba(255, 255, 255, 0.08);
+            flex-shrink: 0;
+        }
+
+        .editor-tab {
+            flex: 1;
+            padding: 10px 0;
+            background: transparent;
+            border: none;
+            color: #6E738F;
+            font-size: 13px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            border-bottom: 2px solid transparent;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+        }
+
+        .editor-tab svg {
+            width: 14px;
+            height: 14px;
+            stroke: currentColor;
+            stroke-width: 1.6;
+        }
+
+        .editor-tab.active {
+            color: #FFFFFF;
+            border-bottom-color: #FFFFFF;
+        }
+
+        .editor-body {
+            padding: 20px;
+            overflow-y: auto;
+            flex: 1;
+            scroll-behavior: smooth;
+            background: #000000;
+        }
+
+        .editor-tab-content {
+            display: none;
+            animation: fadeInUp 0.3s ease;
+        }
+
+        .editor-tab-content.active {
+            display: block;
+        }
+
+        .editor-field {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            margin-bottom: 20px;
+        }
+
+        .editor-field label {
+            font-size: 11px;
+            font-weight: 600;
+            color: #8A8F99;
+            letter-spacing: 0.5px;
+            text-transform: uppercase;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .editor-field label svg {
+            width: 11px;
+            height: 11px;
+            stroke: #8A8F99;
+        }
+
+        .editor-field input,
+        .editor-field textarea {
+            width: 100%;
+            padding: 14px 16px;
+            background: #0A0A0C;
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-radius: 14px;
+            color: #FFFFFF;
+            font-size: 15px;
+            font-family: inherit;
+            transition: all 0.2s ease;
+        }
+
+        .editor-field input:focus,
+        .editor-field textarea:focus {
+            outline: none;
+            border-color: #FFFFFF;
+            background: #111111;
+        }
+
+        .editor-field textarea {
+            resize: vertical;
+            min-height: 80px;
+        }
+
+        .public-id-field {
+            background: #0A0A0C;
+            border-radius: 14px;
+            padding: 0;
+        }
+
+        .public-id-input-wrapper {
+            display: flex;
+            align-items: center;
+            background: #0A0A0C;
+            border-radius: 14px;
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            overflow: hidden;
+            transition: all 0.2s ease;
+        }
+
+        .public-id-input-wrapper:focus-within {
+            border-color: #FFFFFF;
+        }
+
+        .public-id-prefix {
+            padding: 14px 0 14px 16px;
+            color: #8A8F99;
+            font-size: 14px;
+            font-weight: 400;
+            background: transparent;
+            border-right: 1px solid rgba(255, 255, 255, 0.08);
+        }
+
+        .public-id-input-wrapper input {
+            flex: 1;
+            padding: 14px 12px;
+            background: transparent;
+            border: none;
+            color: #FFFFFF;
+            font-size: 14px;
+        }
+
+        .public-id-input-wrapper input:focus {
+            outline: none;
+            box-shadow: none;
+        }
+
+        .public-id-hint {
+            font-size: 10px;
+            color: #6E738F;
+            margin-top: 6px;
+            padding-left: 4px;
+        }
+
+        .public-id-hint.valid {
+            color: #34C759;
+        }
+
+        .public-id-hint.invalid {
+            color: #FF3B30;
+        }
+
+        .avatar-upload-area {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 14px;
+            padding: 20px;
+            background: #0A0A0C;
+            border-radius: 20px;
+            border: 1px solid rgba(255, 255, 255, 0.06);
+            margin-bottom: 20px;
+        }
+
+        .avatar-upload-preview {
+            width: 88px;
+            height: 88px;
+            border-radius: 44px;
+            background: #111111;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+            border: 2px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .avatar-upload-preview img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .avatar-upload-preview svg {
+            width: 36px;
+            height: 36px;
+            stroke: #6E738F;
+            stroke-width: 1.2;
+        }
+
+        .avatar-upload-btn {
+            background: rgba(255, 255, 255, 0.05);
+            border: 0.5px solid rgba(255, 255, 255, 0.1);
+            border-radius: 30px;
+            padding: 8px 20px;
+            color: #FFFFFF;
+            font-size: 12px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .avatar-upload-btn svg {
+            width: 14px;
+            height: 14px;
+            stroke: currentColor;
+        }
+
+        .avatar-upload-btn:active {
+            transform: scale(0.96);
+            background: #FFFFFF;
+            color: #000000;
+        }
+
+        .type-btn {
+            background: #0A0A0C;
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-radius: 14px;
+            padding: 14px 16px;
+            color: #FFFFFF;
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+
+        .type-btn svg {
+            width: 16px;
+            height: 16px;
+            stroke: currentColor;
+        }
+
+        .type-btn:active {
+            transform: scale(0.98);
+            background: #FFFFFF;
+            color: #000000;
+        }
+
+        .user-list {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            max-height: 340px;
+            overflow-y: auto;
+            padding-right: 4px;
+        }
+
+        .user-list-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 10px 12px;
+            background: #0A0A0C;
+            border-radius: 16px;
+            transition: all 0.2s ease;
+            border: 0.5px solid rgba(255, 255, 255, 0.05);
+        }
+
+        .user-list-item:active {
+            background: #111111;
+        }
+
+        .user-list-avatar {
+            width: 44px;
+            height: 44px;
+            border-radius: 22px;
+            background: #111111;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 16px;
+            font-weight: 600;
+            overflow: hidden;
+            flex-shrink: 0;
+            border: 0.5px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .user-list-avatar img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .user-list-info {
+            flex: 1;
+            min-width: 0;
+        }
+
+        .user-list-name {
+            font-size: 14px;
+            font-weight: 600;
+            color: #FFFFFF;
+        }
+
+        .user-list-username {
+            font-size: 11px;
+            color: #6E738F;
+        }
+
+        .user-list-badge {
+            font-size: 9px;
+            padding: 2px 6px;
+            border-radius: 8px;
+            background: rgba(255, 255, 255, 0.1);
+            color: #8A8F99;
+            margin-left: 6px;
+            font-weight: 500;
+        }
+
+        .user-list-action {
+            background: rgba(255, 255, 255, 0.05);
+            border: 0.5px solid rgba(255, 255, 255, 0.1);
+            border-radius: 20px;
+            padding: 6px 14px;
+            font-size: 11px;
+            font-weight: 500;
+            color: #fff;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            flex-shrink: 0;
+        }
+
+        .user-list-action:active {
+            transform: scale(0.95);
+            background: #FFFFFF;
+            color: #000000;
+        }
+
+        .search-input {
+            width: 100%;
+            padding: 12px 16px;
+            background: #0A0A0C;
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-radius: 14px;
+            color: #fff;
+            font-size: 13px;
+            margin-bottom: 14px;
+            transition: all 0.2s;
+        }
+
+        .search-input:focus {
+            outline: none;
+            border-color: #FFFFFF;
+            background: #111111;
+        }
+
+        .search-input::placeholder {
+            color: #4A4F66;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 40px 20px;
+            color: #6E738F;
+            font-size: 13px;
+        }
+
+       
+        .editor-actions {
+            display: flex;
+            gap: 12px;
+            margin-top: 24px;
+            padding-top: 20px;
+            border-top: 0.5px solid rgba(255, 255, 255, 0.08);
+        }
+
+        .editor-save,
+        .editor-cancel {
+            flex: 1;
+            padding: 12px 16px;
+            border-radius: 40px;
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.25s cubic-bezier(0.34, 1.2, 0.64, 1);
+            border: none;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+
+        .editor-save {
+            background: #FFFFFF;
+            color: #000000;
+        }
+
+        .editor-save svg {
+            width: 16px;
+            height: 16px;
+            stroke: #000000;
+            stroke-width: 1.8;
+            fill: none;
+        }
+
+        .editor-save:active {
+            transform: scale(0.96);
+            background: #E8E8E8;
+        }
+
+        .editor-cancel {
+            background: rgba(255, 255, 255, 0.05);
+            color: #8A8F99;
+            border: 0.5px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .editor-cancel svg {
+            width: 16px;
+            height: 16px;
+            stroke: currentColor;
+            stroke-width: 1.6;
+            fill: none;
+        }
+
+        .editor-cancel:active {
+            transform: scale(0.96);
+            background: rgba(255, 255, 255, 0.1);
+            color: #FFFFFF;
+        }
+
+        .sheet {
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.75);
+            backdrop-filter: blur(16px);
+            display: none;
+            align-items: flex-end;
+            z-index: 150;
+            animation: fadeIn 0.2s;
+        }
+
+        .sheet.show {
+            display: flex;
+        }
+
+        .sheet-card {
+            width: 100%;
+            max-height: 80dvh;
+            background: #000000;
+            border-top-left-radius: 28px;
+            border-top-right-radius: 28px;
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+            display: flex;
+            flex-direction: column;
+            animation: slideUp 0.3s ease;
+        }
+
+        .sheet-head {
+            padding: 18px 20px 12px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 0.5px solid rgba(255, 255, 255, 0.08);
+        }
+
+        .sheet-head h4 {
+            font-size: 17px;
+            font-weight: 600;
+        }
+
+        .sheet-close {
+            background: rgba(255, 255, 255, 0.05);
+            border: 0.5px solid rgba(255, 255, 255, 0.1);
+            padding: 6px 16px;
+            border-radius: 30px;
+            color: #fff;
+            font-size: 12px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .sheet-close:active {
+            background: #FFFFFF;
+            color: #000000;
+        }
+
+        .sheet-body {
+            padding: 16px;
+            overflow-y: auto;
+            flex: 1;
+        }
+
+        .toast {
+            position: fixed;
+            bottom: 30px;
+            left: 50%;
+            transform: translateX(-50%) translateY(100px);
+            background: #1A1D24;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 50px;
+            padding: 10px 24px;
+            color: #fff;
+            font-size: 13px;
+            font-weight: 500;
+            z-index: 250;
+            transition: transform 0.3s cubic-bezier(0.34, 1.2, 0.64, 1);
+            white-space: nowrap;
+            backdrop-filter: blur(10px);
+        }
+
+        .toast.show {
+            transform: translateX(-50%) translateY(0);
+        }
+
+        .report-modal-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.75);
+            backdrop-filter: blur(12px);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 1200;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.25s ease;
+            padding: 16px;
+        }
+
+        .report-modal-overlay.show {
+            opacity: 1;
+            pointer-events: all;
+        }
+
+        .report-modal-card {
+            background: linear-gradient(135deg, #1A1D24, #14171D);
+            border-radius: 28px;
+            width: 100%;
+            max-width: 480px;
+            max-height: 85vh;
+            overflow-y: auto;
+            border: 1px solid rgba(88, 0, 5, 0.4);
+            box-shadow: 0 30px 60px -20px rgba(0,0,0,0.8);
+            transform: scale(0.96);
+            transition: transform 0.25s ease;
+        }
+
+        .report-modal-overlay.show .report-modal-card {
+            transform: scale(1);
+        }
+
+        .report-modal-head {
+            padding: 20px 20px 14px;
+            border-bottom: 1px solid rgba(255,255,255,0.08);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 12px;
+        }
+
+        .report-modal-head h3 {
+            font-size: 18px;
+            font-weight: 600;
+            color: #fff;
+        }
+
+        .report-modal-close {
+            width: 34px;
+            height: 34px;
+            border-radius: 17px;
+            border: none;
+            background: rgba(255,255,255,0.08);
+            color: #9AA0AE;
+            cursor: pointer;
+        }
+
+        .report-modal-body {
+            padding: 16px 20px 20px;
+        }
+
+        .report-reasons {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            margin-bottom: 14px;
+        }
+
+        .report-reason-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 12px 14px;
+            border-radius: 16px;
+            border: 1px solid rgba(255,255,255,0.06);
+            background: rgba(30, 33, 40, 0.6);
+            color: #fff;
+            cursor: pointer;
+            text-align: left;
+        }
+
+        .report-reason-item.selected {
+            border-color: #580005;
+            background: rgba(88, 0, 5, 0.25);
+        }
+
+        .report-reason-icon {
+            width: 32px;
+            height: 32px;
+            border-radius: 10px;
+            background: rgba(88, 0, 5, 0.2);
+            color: #580005;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+        }
+
+        .report-reason-icon svg {
+            width: 18px;
+            height: 18px;
+        }
+
+        .report-reason-title {
+            font-size: 14px;
+            font-weight: 500;
+            color: #fff;
+        }
+
+        .report-reason-desc {
+            font-size: 12px;
+            color: #8A8F99;
+        }
+
+        .report-custom-input {
+            width: 100%;
+            min-height: 86px;
+            resize: vertical;
+            border-radius: 14px;
+            padding: 12px 14px;
+            border: 1px solid #2C2F38;
+            background: #1E2128;
+            color: #fff;
+            font-family: inherit;
+            font-size: 14px;
+            margin-bottom: 12px;
+        }
+
+        .report-actions {
+            display: flex;
+            gap: 10px;
+        }
+
+        .report-btn {
+            flex: 1;
+            border: none;
+            border-radius: 22px;
+            padding: 12px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 600;
+        }
+
+        .report-btn.cancel {
+            background: rgba(44, 47, 56, 0.7);
+            color: #fff;
+            border: 1px solid rgba(255,255,255,0.1);
+        }
+
+        .report-btn.submit {
+            background: #580005;
+            color: #fff;
+        }
+
+        .report-btn.submit:disabled {
+            opacity: 0.55;
+            cursor: not-allowed;
+        }
+
+        ::-webkit-scrollbar {
+            width: 3px;
+        }
+        ::-webkit-scrollbar-track {
+            background: transparent;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #2E3243;
+            border-radius: 10px;
+        }
+
+        @media (min-width: 768px) {
+            .channel-screen {
+                max-width: 500px;
+                margin: 0 auto;
+                border-left: 1px solid rgba(255,255,255,0.04);
+                border-right: 1px solid rgba(255,255,255,0.04);
+            }
+        }
+    </style>
+</head>
+<body>
+<div class="channel-screen">
+    <div class="channel-header">
+        <button class="back-btn" id="backBtn">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
+                <polyline points="15 18 9 12 15 6"/>
+            </svg>
+        </button>
+        <div class="header-title" id="headerTitle"></div>
+        <button class="edit-top-btn" id="editTopBtn" style="display: none;">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+                <path d="M12 20h9M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/>
+            </svg>
+            <span>Изменить</span>
+        </button>
+    </div>
+
+    <div class="channel-content" id="channelContent"></div>
+</div>
+
+<!-- Premium Editor - Black & White -->
+<div class="editor-overlay" id="editorOverlay">
+    <div class="editor-card">
+        <div class="editor-header">
+            <h3>Управление каналом</h3>
+            <button class="editor-close" id="editorCloseBtn">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <line x1="18" y1="6" x2="6" y2="18"/>
+                    <line x1="6" y1="6" x2="18" y2="18"/>
+                </svg>
+            </button>
+        </div>
+        
+        <div class="editor-tabs">
+            <button class="editor-tab active" data-tab="main">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+                Основное
+            </button>
+            <button class="editor-tab" data-tab="admins">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M12 2a10 10 0 1 0 10 10"/><path d="M12 6v6l4 2"/></svg>
+                Админы
+            </button>
+            <button class="editor-tab" data-tab="subscribers">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+                Подписчики
+            </button>
+        </div>
+        
+        <div class="editor-body">
+            <div class="editor-tab-content active" id="tabMain">
+                <div class="avatar-upload-area">
+                    <div class="avatar-upload-preview" id="avatarPreviewContainer">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.2">
+                            <rect x="2" y="2" width="20" height="20" rx="2.18"/>
+                            <path d="M7 2v20M17 2v20M2 12h20"/>
+                        </svg>
+                        <img id="avatarPreviewImg" style="display: none;">
+                    </div>
+                    <button class="avatar-upload-btn" id="uploadAvatarBtn">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+                            <rect x="2" y="2" width="20" height="20" rx="2.18"/>
+                            <path d="M7 2v20M17 2v20M2 12h20"/>
+                        </svg>
+                        Загрузить фото
+                    </button>
+                    <input type="file" id="avatarFileInput" accept="image/*" style="display: none;">
+                </div>
+
+                <div class="editor-field">
+                    <label>Название канала</label>
+                    <input type="text" id="editChannelName" placeholder="Введите название">
+                </div>
+
+                <div class="editor-field">
+                    <label>Публичный ID</label>
+                    <div class="public-id-field">
+                        <div class="public-id-input-wrapper">
+                            <span class="public-id-prefix">tobebe.online/c/</span>
+                            <input type="text" id="editPublicId" placeholder="channel-id" autocomplete="off">
+                        </div>
+                    </div>
+                    <div class="public-id-hint" id="publicIdHint">Только латиница, цифры и _ (3-40 символов)</div>
+                </div>
+
+                <div class="editor-field">
+                    <label>Описание</label>
+                    <textarea id="editChannelDesc" placeholder="Расскажите о канале..."></textarea>
+                </div>
+
+                <div class="editor-field">
+                    <label>Тип канала</label>
+                    <button class="type-btn" id="toggleTypeBtn">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+                            <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/>
+                            <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+                        </svg>
+                        <span id="typeBtnText">Публичный</span>
+                    </button>
+                </div>
+            </div>
+            
+            <div class="editor-tab-content" id="tabAdmins">
+                <div class="editor-field">
+                    <label>Администраторы канала</label>
+                    <div id="adminsList" class="user-list"></div>
+                </div>
+                <div class="editor-field">
+                    <label>Добавить администратора</label>
+                    <input type="text" id="adminSearchInput" class="search-input" placeholder="Поиск пользователя...">
+                    <div id="usersList" class="user-list"></div>
+                </div>
+            </div>
+            
+            <div class="editor-tab-content" id="tabSubscribers">
+                <div class="editor-field">
+                    <label>Управление подписчиками</label>
+                    <input type="text" id="subscriberSearchInput" class="search-input" placeholder="Поиск подписчика...">
+                    <div id="subscribersList" class="user-list"></div>
+                </div>
+            </div>
+
+            <div class="editor-actions">
+                <button class="editor-cancel" id="editorCancelBtn">Отмена</button>
+                <button class="editor-save" id="editorSaveBtn">Сохранить</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="sheet" id="sheet">
+    <div class="sheet-card">
+        <div class="sheet-head">
+            <h4 id="sheetTitle">Управление</h4>
+            <button class="sheet-close" id="sheetCloseBtn">Закрыть</button>
+        </div>
+        <div class="sheet-body" id="sheetBody"></div>
+    </div>
+</div>
+
+<div class="report-modal-overlay" id="reportModal">
+    <div class="report-modal-card">
+        <div class="report-modal-head">
+            <h3>Пожаловаться</h3>
+            <button class="report-modal-close" id="closeReportModal" type="button">✕</button>
+        </div>
+        <div class="report-modal-body">
+            <div class="report-reasons" id="reportReasonsList"></div>
+            <textarea class="report-custom-input" id="customReasonInput" placeholder="Опишите причину жалобы..." style="display:none;"></textarea>
+            <div class="report-actions">
+                <button class="report-btn cancel" id="cancelReportBtn" type="button">Отмена</button>
+                <button class="report-btn submit" id="submitReportBtn" type="button" disabled>Отправить жалобу</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="toast" id="toast">Сообщение</div>
+
+<div id="videoPlayerModal" class="video-player-modal">
+    <div class="video-player-container">
+        <div class="iv-top-info iv-glass" id="videoViewerTopInfo"></div>
+        <button class="iv-back iv-glass" id="videoViewerBack" aria-label="Назад">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <polyline points="15 18 9 12 15 6"></polyline>
+            </svg>
+        </button>
+        <button class="iv-menu iv-glass video-player-menu" id="videoViewerMenu" aria-label="Меню">
+            <span style="font-weight:900;font-size:20px;line-height:1;">•••</span>
+        </button>
+        <div class="iv-popup" id="videoViewerMenuPopup">
+            <button id="videoViewerDownloadBtn">Скачать</button>
+        </div>
+        <video id="videoPlayer" class="video-player-element"></video>
+        <div class="video-player-hit" id="videoPlayerHit"></div>
+        <div class="video-player-center">
+            <button class="video-player-center-btn" id="videoCenterPlay" aria-label="Плей/пауза">
+                <svg viewBox="0 0 24 24" fill="currentColor" width="34" height="34">
+                    <polygon points="8,5 19,12 8,19"></polygon>
+                </svg>
+            </button>
+        </div>
+        <div class="video-skip-feedback" id="videoSkipFeedback"></div>
+        <div class="video-player-controls">
+            <button class="video-player-play" id="videoPlayerPlay" aria-label="Плей/пауза">
+                <svg viewBox="0 0 24 24" fill="currentColor" width="22" height="22">
+                    <polygon points="8,5 19,12 8,19"></polygon>
+                </svg>
+            </button>
+            <div class="video-player-progress" id="videoProgress">
+                <div class="video-player-progress-fill" id="videoProgressFill"></div>
+            </div>
+            <span class="video-player-time" id="videoTime">0:00 / 0:00</span>
+        </div>
+    </div>
+</div>
+
+<div id="imageViewerModal" class="image-viewer-modal">
+    <div class="image-viewer-content" id="imageViewerContent">
+        <img id="imageViewerImage" class="image-viewer-image" src="" alt="">
+        <div class="iv-top-info iv-glass" id="imageViewerTopInfo"></div>
+        <button class="iv-back iv-glass" id="imageViewerBack" aria-label="Назад">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <polyline points="15 18 9 12 15 6"></polyline>
+            </svg>
+        </button>
+        <button class="iv-menu iv-glass" id="imageViewerMenu" aria-label="Меню">
+            <span style="font-weight:900;font-size:20px;line-height:1;">•••</span>
+        </button>
+        <div class="iv-popup" id="imageViewerMenuPopup">
+            <button id="imageViewerDownloadBtn">Скачать</button>
+        </div>
+    </div>
+</div>
+
+<script>
+    (function() {
+        const installSecureApiFetch = () => {
+            if (window.__tobebeSecureFetchInstalled) return;
+            const originalFetch = window.fetch.bind(window);
+            const trustedApiOrigins = new Set([window.location.origin, 'https://tobebe.online']);
+            window.fetch = (input, init) => {
+                const isRequestObject = typeof Request !== 'undefined' && input instanceof Request;
+                const requestUrl = typeof input === 'string' ? input : ((input && input.url) ? input.url : '');
+                let nextInput = input;
+                const nextInit = init ? { ...init } : {};
+                try {
+                    const url = new URL(requestUrl, window.location.origin);
+                    const isApiPath = /\/api\.php$/i.test(url.pathname) || /\/api\.php\?/i.test(url.href);
+                    if (isApiPath) {
+                        const isTrustedApiOrigin = trustedApiOrigins.has(url.origin);
+                        const headers = new Headers((nextInit.headers || (isRequestObject ? input.headers : undefined)) || {});
+                        if (!isTrustedApiOrigin && headers.has('Authorization')) headers.delete('Authorization');
+                        if (nextInit.credentials === undefined) nextInit.credentials = isTrustedApiOrigin ? 'include' : 'omit';
+                        if (!(isRequestObject && !init)) {
+                            url.searchParams.delete('user_id');
+                            nextInput = url.toString();
+                            if (nextInit.body instanceof FormData) {
+                                nextInit.body.delete('user_id');
+                            } else if (typeof nextInit.body === 'string') {
+                                const contentType = (headers.get('Content-Type') || '').toLowerCase();
+                                if (contentType.includes('application/json')) {
+                                    try {
+                                        const parsed = JSON.parse(nextInit.body);
+                                        if (parsed && typeof parsed === 'object' && !Array.isArray(parsed)) {
+                                            delete parsed.user_id;
+                                            nextInit.body = JSON.stringify(parsed);
+                                        }
+                                    } catch (_) {}
+                                }
+                            }
+                        }
+                        nextInit.headers = headers;
+                    }
+                } catch (_) {}
+                return originalFetch(nextInput, nextInit);
+            };
+            window.__tobebeSecureFetchInstalled = true;
+        };
+        installSecureApiFetch();
+
+        const apiUrl = 'https://tobebe.online/api.php';
+        let currentUser = null;
+        try {
+            currentUser = JSON.parse(localStorage.getItem('tobebe_user') || 'null');
+        } catch(e) { currentUser = null; }
+
+        const channelId = new URLSearchParams(window.location.search).get('channel_id') || '';
+        const escapeHtml = (str) => String(str || '').replace(/[&<>"']/g, function(m) {
+            if (m === '&') return '&amp;';
+            if (m === '<') return '&lt;';
+            if (m === '>') return '&gt;';
+            if (m === '"') return '&quot;';
+            if (m === "'") return '&#39;';
+            return m;
+        });
+
+        const getWord = (n, titles) => {
+            const cases = [2, 0, 1, 1, 1, 2];
+            return titles[(n % 100 > 4 && n % 100 < 20) ? 2 : cases[Math.min(n % 10, 5)]];
+        };
+
+        let channel = null;
+        let editMode = false;
+        let selectedAvatarBase64 = '';
+        let allUsers = [];
+        let adminsList = [];
+        let subscribersList = [];
+        let selectedReportReason = null;
+        let channelMessages = [];
+        let mediaItems = [];
+        let voiceItems = [];
+        let linkItems = [];
+        let currentMediaTab = 'media';
+        let avatarState = 'normal';
+        let isPullingAvatar = false;
+        let avatarPullStartY = 0;
+        let mediaViewerItems = [];
+        let mediaViewerActiveIndex = -1;
+        let mediaViewerActiveType = 'image';
+        let mediaViewerTransitionLock = false;
+        let mediaViewerUiVisible = true;
+        let currentViewerSrc = '';
+        let currentVideoUrl = '';
+        let viewerScale = 1;
+        let viewerOffsetX = 0;
+        let viewerOffsetY = 0;
+        let imageViewerMomentumFrame = null;
+        let mediaViewerSpringFrame = null;
+        let videoPlayerEl = null;
+        let videoProgressInterval = null;
+        let videoUiTimer = null;
+        let videoViewerScale = 1;
+        let videoViewerOffsetX = 0;
+        let videoViewerOffsetY = 0;
+        let videoViewerMomentumFrame = null;
+        let mediaViewerVideoSpringFrame = null;
+        let videoViewerPointerId = null;
+        let videoViewerDragStartX = 0;
+        let videoViewerDragStartY = 0;
+        const reportReasons = [
+            { key: 'dislike', title: 'Мне это не нравится', desc: 'Нежелательный или неприятный контент' },
+            { key: 'abuse', title: 'Жестокое обращение', desc: 'Издевательства, травля или унижение' },
+            { key: 'violence', title: 'Насилие', desc: 'Угрозы, драки или сцены насилия' },
+            { key: 'illegal_goods', title: 'Незаконные товары и услуги', desc: 'Продажа или реклама запрещенных товаров' },
+            { key: 'illegal_adult', title: 'Незаконный контент для взрослых', desc: 'Запрещенный контент 18+' },
+            { key: 'personal_data', title: 'Персональные данные', desc: 'Публикация личной информации без согласия' },
+            { key: 'fraud', title: 'Мошенничество или мошенничество', desc: 'Обман, фейковые сборы или вымогательство' },
+            { key: 'copyright', title: 'Авторское право', desc: 'Нарушение авторских или смежных прав' },
+            { key: 'spam', title: 'Спам', desc: 'Навязчивая массовая рассылка или реклама' },
+            { key: 'custom', title: 'Своя причина', desc: 'Опишите причину вручную' }
+        ];
+        const reportModal = document.getElementById('reportModal');
+        const reportReasonsList = document.getElementById('reportReasonsList');
+        const customReasonInput = document.getElementById('customReasonInput');
+        const submitReportBtn = document.getElementById('submitReportBtn');
+        const cancelReportBtn = document.getElementById('cancelReportBtn');
+        const closeReportModalBtn = document.getElementById('closeReportModal');
+
+        const showToast = (msg) => {
+            const toast = document.getElementById('toast');
+            toast.textContent = msg;
+            toast.classList.add('show');
+            setTimeout(() => toast.classList.remove('show'), 2000);
+        };
+
+        const apiGet = async (action, query = {}) => {
+            const params = new URLSearchParams({ action, ...query });
+            const res = await fetch(`${apiUrl}?${params.toString()}`);
+            return res.json();
+        };
+
+        const apiPost = async (action, payload = {}) => {
+            const res = await fetch(`${apiUrl}?action=${encodeURIComponent(action)}`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload)
+            });
+            return res.json();
+        };
+
+        const fetchChannel = async () => {
+            if (!channelId || !currentUser?.id) return null;
+            try {
+                const data = await apiGet('get_channel_profile', { user_id: currentUser.id, channel_id: channelId });
+                if (!data.success || !data.channel) return null;
+                return data.channel;
+            } catch {
+                return null;
+            }
+        };
+
+        const loadAllUsers = async () => {
+            const data = await apiGet('get_users', { user_id: currentUser.id });
+            if (data.success && Array.isArray(data.users)) {
+                allUsers = data.users;
+            }
+            return allUsers;
+        };
+
+        const loadAdminsData = async () => {
+            const data = await apiGet('get_channel_admins', { channel_id: channel.id, user_id: currentUser.id });
+            if (data.success && Array.isArray(data.admins)) {
+                adminsList = data.admins;
+            }
+            return adminsList;
+        };
+
+        const loadSubscribersData = async () => {
+            const data = await apiGet('get_channel_subscribers', { channel_id: channel.id, user_id: currentUser.id });
+            if (data.success && Array.isArray(data.subscribers)) {
+                subscribersList = data.subscribers;
+            }
+            return subscribersList;
+        };
+
+        const validatePublicId = (id) => {
+            if (!id) return true;
+            return /^[a-z0-9_]{3,40}$/.test(id);
+        };
+
+        const updatePublicIdHint = () => {
+            const input = document.getElementById('editPublicId');
+            const hint = document.getElementById('publicIdHint');
+            if (!input || !hint) return;
+            const value = input.value.trim();
+            if (!value) {
+                hint.textContent = 'Необязательно. Только латиница, цифры и _ (3-40 символов)';
+                hint.className = 'public-id-hint';
+            } else if (/^[a-z0-9_]{3,40}$/.test(value)) {
+                hint.textContent = '✓ Доступно';
+                hint.className = 'public-id-hint valid';
+            } else {
+                hint.textContent = '✗ Некорректный ID (a-z, 0-9, _, 3-40 символов)';
+                hint.className = 'public-id-hint invalid';
+            }
+        };
+
+        const renderAdminsTab = () => {
+            const container = document.getElementById('adminsList');
+            if (!container) return;
+            
+            const adminIds = new Set(adminsList.map(a => Number(a.id)));
+            const isOwner = channel?.is_owner;
+            
+            container.innerHTML = adminsList.length ? adminsList.map(admin => `
+                <div class="user-list-item">
+                    <div class="user-list-avatar">${admin.avatar ? `<img src="${escapeHtml(admin.avatar)}">` : (admin.display_name || admin.username || 'A').charAt(0).toUpperCase()}</div>
+                    <div class="user-list-info">
+                        <div class="user-list-name">${escapeHtml(admin.display_name || admin.username)} ${admin.is_owner ? '<span class="user-list-badge">Создатель</span>' : ''}</div>
+                        <div class="user-list-username">@${escapeHtml(admin.username)}</div>
+                    </div>
+                    ${isOwner && !admin.is_owner ? `<button class="user-list-action" onclick="window.removeAdminFromChannel(${admin.id})">Снять</button>` : ''}
+                </div>
+            `).join('') : '<div class="empty-state">Нет администраторов</div>';
+            
+            const candidates = allUsers.filter(u => !adminIds.has(Number(u.id)) && Number(u.id) !== Number(channel?.owner_id));
+            const usersContainer = document.getElementById('usersList');
+            if (usersContainer && isOwner) {
+                usersContainer.innerHTML = candidates.length ? candidates.map(user => `
+                    <div class="user-list-item">
+                        <div class="user-list-avatar">${user.avatar ? `<img src="${escapeHtml(user.avatar)}">` : (user.display_name || user.username || 'U').charAt(0).toUpperCase()}</div>
+                        <div class="user-list-info">
+                            <div class="user-list-name">${escapeHtml(user.display_name || user.username)}</div>
+                            <div class="user-list-username">@${escapeHtml(user.username)}</div>
+                        </div>
+                        <button class="user-list-action" onclick="window.addAdminToChannel(${user.id})">Назначить</button>
+                    </div>
+                `).join('') : '<div class="empty-state">Нет пользователей для добавления</div>';
+            } else if (usersContainer && !isOwner) {
+                usersContainer.innerHTML = '<div class="empty-state">Только создатель может назначать администраторов</div>';
+            }
+        };
+
+        const renderSubscribersTab = () => {
+            const container = document.getElementById('subscribersList');
+            if (!container) return;
+            
+            const canRemove = channel?.is_owner || channel?.is_admin;
+            
+            container.innerHTML = subscribersList.length ? subscribersList.map(sub => `
+                <div class="user-list-item">
+                    <div class="user-list-avatar">${sub.avatar ? `<img src="${escapeHtml(sub.avatar)}">` : (sub.display_name || sub.username || 'U').charAt(0).toUpperCase()}</div>
+                    <div class="user-list-info">
+                        <div class="user-list-name">${escapeHtml(sub.display_name || sub.username)} ${sub.is_owner ? '<span class="user-list-badge">Создатель</span>' : ''} ${sub.is_admin ? '<span class="user-list-badge">Админ</span>' : ''}</div>
+                        <div class="user-list-username">@${escapeHtml(sub.username)}</div>
+                    </div>
+                    ${canRemove && !sub.is_owner ? `<button class="user-list-action" onclick="window.removeSubscriberFromChannel(${sub.id})">Удалить</button>` : ''}
+                </div>
+            `).join('') : '<div class="empty-state">Нет подписчиков</div>';
+        };
+
+        const leaveChannel = async () => {
+            const data = await apiPost('leave_channel', { channel_id: channelId, user_id: currentUser.id });
+            if (!data.success) return showToast(data.message || 'Ошибка');
+            window.location.href = 'https://tobebe.online/index.html';
+        };
+
+        const saveChannel = async () => {
+            const name = document.getElementById('editChannelName').value.trim();
+            const description = document.getElementById('editChannelDesc').value.trim();
+            const publicId = document.getElementById('editPublicId').value.trim().toLowerCase();
+            
+            if (!name) return showToast('Введите название канала');
+            if (publicId && !/^[a-z0-9_]{3,40}$/.test(publicId)) {
+                return showToast('Некорректный публичный ID');
+            }
+
+            const data = await apiPost('update_channel', {
+                channel_id: channel.id,
+                user_id: currentUser.id,
+                name: name,
+                description: description,
+                public_id: publicId || null,
+                avatar: selectedAvatarBase64 || channel.avatar || ''
+            });
+
+            if (!data.success) return showToast(data.message || 'Ошибка сохранения');
+            
+            channel = await fetchChannel();
+            selectedAvatarBase64 = '';
+            closeEditor();
+            render();
+            showToast('Канал обновлён');
+        };
+
+        const openEditor = async () => {
+            if (!channel) return;
+            
+            await loadAllUsers();
+            await loadAdminsData();
+            await loadSubscribersData();
+            
+            document.getElementById('editChannelName').value = channel.name || '';
+            document.getElementById('editChannelDesc').value = channel.description || '';
+            document.getElementById('editPublicId').value = channel.public_id || '';
+            document.getElementById('typeBtnText').textContent = channel.group_type === 'public' ? 'Публичный' : 'Приватный';
+            updatePublicIdHint();
+            
+            const previewImg = document.getElementById('avatarPreviewImg');
+            const previewContainer = document.getElementById('avatarPreviewContainer');
+            if (channel.avatar) {
+                previewImg.src = channel.avatar;
+                previewImg.style.display = 'block';
+                previewContainer.querySelector('svg').style.display = 'none';
+            } else {
+                previewImg.style.display = 'none';
+                previewContainer.querySelector('svg').style.display = 'block';
+            }
+            selectedAvatarBase64 = '';
+            
+            renderAdminsTab();
+            renderSubscribersTab();
+            
+            document.getElementById('editorOverlay').classList.add('show');
+        };
+
+        const closeEditor = () => {
+            document.getElementById('editorOverlay').classList.remove('show');
+        };
+
+        const handleAvatarUpload = () => {
+            const fileInput = document.getElementById('avatarFileInput');
+            fileInput.click();
+            fileInput.onchange = (e) => {
+                const file = e.target.files[0];
+                if (!file) return;
+                if (!file.type.startsWith('image/')) return showToast('Выберите изображение');
+                if (file.size > 5 * 1024 * 1024) return showToast('Файл до 5 МБ');
+                
+                const reader = new FileReader();
+                reader.onload = (ev) => {
+                    selectedAvatarBase64 = ev.target.result;
+                    const previewImg = document.getElementById('avatarPreviewImg');
+                    const previewContainer = document.getElementById('avatarPreviewContainer');
+                    previewImg.src = selectedAvatarBase64;
+                    previewImg.style.display = 'block';
+                    previewContainer.querySelector('svg').style.display = 'none';
+                };
+                reader.readAsDataURL(file);
+            };
+        };
+
+        const toggleChannelType = async () => {
+            const next = channel.group_type === 'public' ? 'private' : 'public';
+            const publicId = document.getElementById('editPublicId').value.trim().toLowerCase();
+            
+            if (next === 'public' && !publicId) {
+                const newId = prompt('Введите публичный ID канала (a-z, 0-9, _):', channel.public_id || '');
+                if (!newId) return;
+                if (!/^[a-z0-9_]{3,40}$/.test(newId)) {
+                    return showToast('ID: 3-40 символов, a-z, 0-9, _');
+                }
+                document.getElementById('editPublicId').value = newId;
+                updatePublicIdHint();
+                return;
+            }
+            
+            const data = await apiPost('update_channel', {
+                channel_id: channel.id,
+                user_id: currentUser.id,
+                channel_type: next,
+                public_id: next === 'public' ? publicId : ''
+            });
+            if (!data.success) return showToast(data.message || 'Ошибка');
+            channel = await fetchChannel();
+            document.getElementById('typeBtnText').textContent = channel.group_type === 'public' ? 'Публичный' : 'Приватный';
+            render();
+            showToast(`Канал ${next === 'public' ? 'публичный' : 'приватный'}`);
+        };
+
+        const addAdminToChannel = async (userId) => {
+            const data = await apiPost('update_channel_admins', { channel_id: channel.id, user_id: currentUser.id, add_admin_ids: [userId] });
+            if (!data.success) return showToast(data.message || 'Ошибка');
+            await loadAdminsData();
+            renderAdminsTab();
+            render();
+            showToast('Администратор добавлен');
+        };
+
+        const removeAdminFromChannel = async (userId) => {
+            const data = await apiPost('update_channel_admins', { channel_id: channel.id, user_id: currentUser.id, remove_admin_ids: [userId] });
+            if (!data.success) return showToast(data.message || 'Ошибка');
+            await loadAdminsData();
+            renderAdminsTab();
+            render();
+            showToast('Администратор снят');
+        };
+
+        const removeSubscriberFromChannel = async (userId) => {
+            const data = await apiPost('remove_channel_subscriber', { channel_id: channel.id, user_id: currentUser.id, target_user_id: userId });
+            if (!data.success) return showToast(data.message || 'Ошибка');
+            await loadSubscribersData();
+            renderSubscribersTab();
+            channel = await fetchChannel();
+            render();
+            showToast('Подписчик удалён');
+        };
+
+        const copyLink = (link) => {
+            navigator.clipboard.writeText(link).then(() => showToast('Ссылка скопирована'));
+        };
+
+        const extractLinksFromText = (text) => {
+            const source = String(text || '');
+            if (!source) return [];
+            const found = source.match(/https?:\/\/[^\s<>"')]+/gi) || [];
+            return [...new Set(found)];
+        };
+
+        const formatItemDate = (value) => {
+            if (!value) return '';
+            const date = new Date(value);
+            if (Number.isNaN(date.getTime())) return '';
+            return date.toLocaleString('ru-RU', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' });
+        };
+
+        const loadChannelMediaData = async () => {
+            mediaItems = [];
+            voiceItems = [];
+            linkItems = [];
+            channelMessages = [];
+            if (!channel?.id) return;
+            try {
+                const data = await apiGet('get_channel_messages', { channel_id: channel.id });
+                const messages = Array.isArray(data?.messages) ? data.messages : [];
+                channelMessages = messages;
+            } catch {
+                channelMessages = [];
+            }
+            const linksMap = new Map();
+            channelMessages.forEach((msg, index) => {
+                const filePath = String(msg?.file_path || msg?.media_path || '');
+                const fileType = String(msg?.file_type || '').toLowerCase();
+                const text = String(msg?.text || msg?.message || msg?.content || '');
+                const createdAt = msg?.created_at || msg?.timestamp || msg?.date || '';
+                const senderName = msg?.sender_name || msg?.display_name || msg?.username || channel?.name || 'Канал';
+                if (filePath && (fileType.startsWith('image/') || fileType.startsWith('video/'))) {
+                    mediaItems.push({
+                        index,
+                        src: filePath,
+                        isVideo: fileType.startsWith('video/'),
+                        created_at: createdAt,
+                        sender_name: senderName
+                    });
+                }
+                if (filePath && (fileType.startsWith('audio/') || String(msg?.message_type || '').toLowerCase() === 'voice' || Number(msg?.voice_duration) > 0)) {
+                    voiceItems.push({
+                        index,
+                        src: filePath,
+                        created_at: createdAt,
+                        sender_name: senderName
+                    });
+                }
+                extractLinksFromText(text).forEach((url) => {
+                    if (!linksMap.has(url)) {
+                        linksMap.set(url, {
+                            url,
+                            created_at: createdAt,
+                            sender_name: senderName
+                        });
+                    }
+                });
+            });
+            linkItems = [...linksMap.values()];
+        };
+
+        const getChannelMediaElement = (mediaIndex) => {
+            if (!Number.isFinite(Number(mediaIndex)) || Number(mediaIndex) < 0) return null;
+            return document.querySelector(`.media-grid-item[data-media-index="${Number(mediaIndex)}"]`);
+        };
+
+        const getMediaViewerTopInfoHtml = (item = null) => {
+            const senderRaw = item?.sender_name || channel?.name || 'Канал';
+            const sender = Number(item?.sender_id) === Number(currentUser?.id) ? 'Вы' : senderRaw;
+            const date = item?.created_at ? new Date(item.created_at) : null;
+            const validDate = date && !Number.isNaN(date.getTime());
+            const pad = (n) => String(n).padStart(2, '0');
+            const timeText = validDate
+                ? `${pad(date.getDate())}.${pad(date.getMonth() + 1)}.${date.getFullYear()} ${pad(date.getHours())}:${pad(date.getMinutes())}`
+                : '';
+            return `<span class="iv-sender">${escapeHtml(sender)}</span><span class="iv-dot">•</span><span class="iv-time">${escapeHtml(timeText)}</span>`;
+        };
+
+        const syncMediaViewerQueue = (activeMediaIndex = null) => {
+            mediaViewerItems = (mediaItems || [])
+                .map((item, index) => {
+                    if (!item?.src) return null;
+                    return {
+                        type: item.isVideo ? 'video' : 'image',
+                        src: item.src,
+                        mediaIndex: index,
+                        item
+                    };
+                })
+                .filter(Boolean);
+            if (Number.isFinite(Number(activeMediaIndex)) && Number(activeMediaIndex) >= 0) {
+                mediaViewerActiveIndex = mediaViewerItems.findIndex((entry) => entry.mediaIndex === Number(activeMediaIndex));
+            } else if (mediaViewerActiveIndex >= mediaViewerItems.length) {
+                mediaViewerActiveIndex = mediaViewerItems.length - 1;
+            }
+        };
+
+        const animateMediaViewerEntry = (sourceEl, targetEl) => {
+            if (!sourceEl || !targetEl) return;
+            const sourceVisual = sourceEl.matches('img,video') ? sourceEl : sourceEl.querySelector('img,video');
+            if (!sourceVisual) return;
+            const sourceRect = sourceVisual.getBoundingClientRect();
+            const targetRect = targetEl.getBoundingClientRect();
+            if (sourceRect.width < 8 || sourceRect.height < 8 || targetRect.width < 8 || targetRect.height < 8) return;
+            const previewSrc = sourceVisual.currentSrc || sourceVisual.src;
+            if (!previewSrc) return;
+            const clone = document.createElement('img');
+            clone.src = previewSrc;
+            clone.className = 'media-viewer-entry-clone';
+            clone.style.left = `${sourceRect.left}px`;
+            clone.style.top = `${sourceRect.top}px`;
+            clone.style.width = `${sourceRect.width}px`;
+            clone.style.height = `${sourceRect.height}px`;
+            clone.style.opacity = '1';
+            document.body.appendChild(clone);
+            targetEl.style.opacity = '0';
+            requestAnimationFrame(() => {
+                clone.style.transition = 'left 0.34s cubic-bezier(0.22,1,0.36,1), top 0.34s cubic-bezier(0.22,1,0.36,1), width 0.34s cubic-bezier(0.22,1,0.36,1), height 0.34s cubic-bezier(0.22,1,0.36,1), border-radius 0.34s ease, opacity 0.2s ease';
+                clone.style.left = `${targetRect.left}px`;
+                clone.style.top = `${targetRect.top}px`;
+                clone.style.width = `${targetRect.width}px`;
+                clone.style.height = `${targetRect.height}px`;
+                clone.style.borderRadius = '8px';
+            });
+            const finalize = () => {
+                targetEl.style.opacity = '1';
+                clone.remove();
+            };
+            clone.addEventListener('transitionend', finalize, { once: true });
+            setTimeout(finalize, 420);
+        };
+
+        const animateMediaViewerReturnToGrid = (targetEl, mediaIndex, done) => {
+            const finish = typeof done === 'function' ? done : () => {};
+            const source = getChannelMediaElement(mediaIndex);
+            const sourceVisual = source?.matches('img,video') ? source : source?.querySelector?.('img,video');
+            if (!targetEl || !sourceVisual) {
+                finish();
+                return;
+            }
+            const fromRect = targetEl.getBoundingClientRect();
+            const toRect = sourceVisual.getBoundingClientRect();
+            if (fromRect.width < 8 || fromRect.height < 8 || toRect.width < 8 || toRect.height < 8) {
+                finish();
+                return;
+            }
+            const previewSrc = sourceVisual.currentSrc || sourceVisual.src || targetEl.currentSrc || targetEl.src;
+            if (!previewSrc) {
+                finish();
+                return;
+            }
+            const clone = document.createElement('img');
+            clone.src = previewSrc;
+            clone.className = 'media-viewer-entry-clone';
+            clone.style.left = `${fromRect.left}px`;
+            clone.style.top = `${fromRect.top}px`;
+            clone.style.width = `${fromRect.width}px`;
+            clone.style.height = `${fromRect.height}px`;
+            clone.style.opacity = '1';
+            document.body.appendChild(clone);
+            targetEl.style.opacity = '0';
+            requestAnimationFrame(() => {
+                clone.style.transition = 'left 0.3s cubic-bezier(0.22,1,0.36,1), top 0.3s cubic-bezier(0.22,1,0.36,1), width 0.3s cubic-bezier(0.22,1,0.36,1), height 0.3s cubic-bezier(0.22,1,0.36,1), border-radius 0.3s ease, opacity 0.2s ease';
+                clone.style.left = `${toRect.left}px`;
+                clone.style.top = `${toRect.top}px`;
+                clone.style.width = `${toRect.width}px`;
+                clone.style.height = `${toRect.height}px`;
+                clone.style.borderRadius = '14px';
+                clone.style.opacity = '0.98';
+            });
+            const cleanup = () => {
+                clone.remove();
+                finish();
+            };
+            clone.addEventListener('transitionend', cleanup, { once: true });
+            setTimeout(cleanup, 360);
+        };
+
+        const navigateMediaViewer = (direction = 1, options = {}) => {
+            const { gesture = false } = options;
+            if (mediaViewerTransitionLock || !mediaViewerItems.length) return false;
+            const index = Number(mediaViewerActiveIndex);
+            if (!Number.isFinite(index) || index < 0) return false;
+            const nextIndex = (index + direction + mediaViewerItems.length) % mediaViewerItems.length;
+            if (nextIndex === index) return false;
+            const nextItem = mediaViewerItems[nextIndex];
+            if (!nextItem) return false;
+            mediaViewerTransitionLock = true;
+            setTimeout(() => { mediaViewerTransitionLock = false; }, 220);
+            mediaViewerActiveIndex = nextIndex;
+            if (gesture) {
+                const activeEl = mediaViewerActiveType === 'video'
+                    ? document.getElementById('videoPlayer')
+                    : document.getElementById('imageViewerImage');
+                if (activeEl) {
+                    activeEl.style.transition = 'transform 0.18s cubic-bezier(0.22, 1, 0.36, 1), opacity 0.18s ease';
+                    activeEl.style.transform = `translate3d(${-direction * 68}px, 0, 0) scale(1)`;
+                    activeEl.style.opacity = '0.74';
+                }
+            }
+            const openNext = () => {
+                if (nextItem.type === 'image') {
+                    const videoModal = document.getElementById('videoPlayerModal');
+                    if (videoModal?.classList.contains('show')) closeVideoPlayer();
+                    openImageViewer(nextItem.src, nextItem.item, {
+                        mediaIndex: nextItem.mediaIndex,
+                        skipQueueRefresh: true,
+                        skipEntryAnimation: true,
+                        swipeDirection: gesture ? direction : 0
+                    });
+                } else {
+                    const imageModal = document.getElementById('imageViewerModal');
+                    if (imageModal?.classList.contains('show')) {
+                        imageModal.classList.remove('show', 'closing', 'chrome-hidden');
+                    }
+                    openVideoPlayer(nextItem.src, nextItem.item, {
+                        mediaIndex: nextItem.mediaIndex,
+                        skipQueueRefresh: true,
+                        skipEntryAnimation: true,
+                        swipeDirection: gesture ? direction : 0
+                    });
+                }
+            };
+            if (gesture) setTimeout(openNext, 74);
+            else openNext();
+            return true;
+        };
+
+        const openMediaItem = (index, triggerEvent = null) => {
+            const mediaIndex = Number(index);
+            const item = mediaItems[mediaIndex];
+            if (!item?.src) return;
+            const sourceEl = triggerEvent?.currentTarget || getChannelMediaElement(mediaIndex);
+            if (item.isVideo) {
+                openVideoPlayer(item.src, item, { mediaIndex, sourceEl });
+            } else {
+                openImageViewer(item.src, item, { mediaIndex, sourceEl });
+            }
+        };
+
+        const openImageViewer = (src, item = null, options = {}) => {
+            const modal = document.getElementById('imageViewerModal');
+            const image = document.getElementById('imageViewerImage');
+            const infoBar = document.getElementById('imageViewerTopInfo');
+            const content = document.getElementById('imageViewerContent');
+            const { mediaIndex = -1, sourceEl = null, skipQueueRefresh = false, skipEntryAnimation = false, swipeDirection = 0 } = options;
+            if (!modal || !image) return;
+            if (!skipQueueRefresh) syncMediaViewerQueue(mediaIndex);
+            mediaViewerActiveType = 'image';
+            mediaViewerActiveIndex = mediaViewerItems.findIndex((entry) => entry.mediaIndex === Number(mediaIndex));
+            viewerScale = 1;
+            viewerOffsetX = 0;
+            viewerOffsetY = 0;
+            currentViewerSrc = src;
+            if (mediaViewerSpringFrame) {
+                cancelAnimationFrame(mediaViewerSpringFrame);
+                mediaViewerSpringFrame = null;
+            }
+            image.src = src;
+            image.style.transition = 'none';
+            image.style.transform = 'translate3d(0px, 0px, 0) scale(1)';
+            if (infoBar) infoBar.innerHTML = getMediaViewerTopInfoHtml(item);
+            modal.classList.add('show');
+            modal.classList.remove('chrome-hidden', 'closing');
+            modal.style.opacity = '';
+            if (content) content.style.transform = '';
+            mediaViewerUiVisible = true;
+            if (!skipEntryAnimation) {
+                requestAnimationFrame(() => {
+                    animateMediaViewerEntry(sourceEl || getChannelMediaElement(mediaIndex), image);
+                });
+            } else if (swipeDirection) {
+                image.style.opacity = '1';
+                image.style.transition = 'none';
+                image.style.transform = `translate3d(${swipeDirection * 76}px, 0, 0) scale(1)`;
+                requestAnimationFrame(() => {
+                    image.style.transition = 'transform 0.3s cubic-bezier(0.22, 1, 0.36, 1), opacity 0.24s ease';
+                    image.style.transform = 'translate3d(0px, 0px, 0) scale(1)';
+                });
+            } else {
+                image.style.opacity = '1';
+            }
+        };
+
+        const closeImageViewer = (options = {}) => {
+            const { animateReturn = false } = options;
+            if (imageViewerMomentumFrame) {
+                cancelAnimationFrame(imageViewerMomentumFrame);
+                imageViewerMomentumFrame = null;
+            }
+            if (mediaViewerSpringFrame) {
+                cancelAnimationFrame(mediaViewerSpringFrame);
+                mediaViewerSpringFrame = null;
+            }
+            const modal = document.getElementById('imageViewerModal');
+            const content = document.getElementById('imageViewerContent');
+            const image = document.getElementById('imageViewerImage');
+            if (!modal) return;
+            const finishClose = () => {
+                modal.classList.add('closing');
+                modal.style.opacity = '';
+                if (content) content.style.transform = '';
+                setTimeout(() => modal.classList.remove('show', 'closing', 'chrome-hidden'), 200);
+            };
+            if (animateReturn && image) {
+                const current = mediaViewerItems[mediaViewerActiveIndex];
+                animateMediaViewerReturnToGrid(image, current?.mediaIndex, finishClose);
+                return;
+            }
+            finishClose();
+        };
+
+        const applyVideoViewerTransform = (options = {}) => {
+            if (!videoPlayerEl) return;
+            const softBounds = Boolean(options?.softBounds);
+            const container = document.querySelector('.video-player-container');
+            if (container && videoViewerScale > 1.01) {
+                const bounds = container.getBoundingClientRect();
+                const naturalW = videoPlayerEl.videoWidth || bounds.width || 1;
+                const naturalH = videoPlayerEl.videoHeight || bounds.height || 1;
+                const fitScale = Math.min(bounds.width / naturalW, bounds.height / naturalH);
+                const baseW = naturalW * fitScale;
+                const baseH = naturalH * fitScale;
+                const scaledW = baseW * videoViewerScale;
+                const scaledH = baseH * videoViewerScale;
+                const maxX = Math.max(0, (scaledW - bounds.width) / 2);
+                const maxY = Math.max(0, (scaledH - bounds.height) / 2);
+                if (softBounds) {
+                    const overX = Math.abs(videoViewerOffsetX) - maxX;
+                    const overY = Math.abs(videoViewerOffsetY) - maxY;
+                    if (overX > 0) videoViewerOffsetX = Math.sign(videoViewerOffsetX) * (maxX + overX * 0.28);
+                    if (overY > 0) videoViewerOffsetY = Math.sign(videoViewerOffsetY) * (maxY + overY * 0.28);
+                } else {
+                    videoViewerOffsetX = Math.max(-maxX, Math.min(maxX, videoViewerOffsetX));
+                    videoViewerOffsetY = Math.max(-maxY, Math.min(maxY, videoViewerOffsetY));
+                }
+            } else if (videoViewerScale <= 1.01) {
+                videoViewerOffsetX = 0;
+                videoViewerOffsetY = 0;
+            }
+            videoPlayerEl.style.transform = `translate3d(${videoViewerOffsetX}px, ${videoViewerOffsetY}px, 0) scale(${videoViewerScale})`;
+        };
+
+        const showVideoUi = (autoHide = true) => {
+            const container = document.querySelector('.video-player-container');
+            if (!container) return;
+            mediaViewerUiVisible = true;
+            container.classList.add('show-ui');
+            if (videoUiTimer) clearTimeout(videoUiTimer);
+            if (!autoHide) return;
+            videoUiTimer = setTimeout(() => {
+                if (videoPlayerEl && !videoPlayerEl.paused) {
+                    mediaViewerUiVisible = false;
+                    container.classList.remove('show-ui');
+                }
+            }, 1800);
+        };
+
+        const toggleVideoPlay = () => {
+            const playBtn = document.getElementById('videoPlayerPlay');
+            const centerBtn = document.getElementById('videoCenterPlay');
+            if (!videoPlayerEl) return;
+            if (videoPlayerEl.paused) videoPlayerEl.play().catch(() => {});
+            else videoPlayerEl.pause();
+            const iconHtml = videoPlayerEl.paused
+                ? '<svg viewBox="0 0 24 24" fill="currentColor" width="22" height="22"><polygon points="8,5 19,12 8,19"></polygon></svg>'
+                : '<svg viewBox="0 0 24 24" fill="currentColor" width="22" height="22"><rect x="7" y="5" width="4" height="14"></rect><rect x="13" y="5" width="4" height="14"></rect></svg>';
+            if (playBtn) playBtn.innerHTML = iconHtml;
+            if (centerBtn) {
+                centerBtn.innerHTML = videoPlayerEl.paused
+                    ? '<svg viewBox="0 0 24 24" fill="currentColor" width="34" height="34"><polygon points="8,5 19,12 8,19"></polygon></svg>'
+                    : '<svg viewBox="0 0 24 24" fill="currentColor" width="34" height="34"><rect x="7" y="5" width="4" height="14"></rect><rect x="13" y="5" width="4" height="14"></rect></svg>';
+            }
+        };
+
+        const updateVideoProgress = () => {
+            const progressFill = document.getElementById('videoProgressFill');
+            const timeEl = document.getElementById('videoTime');
+            if (!videoPlayerEl || !progressFill || !timeEl) return;
+            const percent = (videoPlayerEl.currentTime / videoPlayerEl.duration) * 100 || 0;
+            progressFill.style.width = percent + '%';
+            const formatTime = (seconds) => {
+                if (Number.isNaN(seconds)) return '0:00';
+                const mins = Math.floor(seconds / 60);
+                const secs = Math.floor(seconds % 60);
+                return `${mins}:${secs.toString().padStart(2, '0')}`;
+            };
+            timeEl.textContent = `${formatTime(videoPlayerEl.currentTime)} / ${formatTime(videoPlayerEl.duration)}`;
+        };
+
+        const openVideoPlayer = (videoUrl, item = null, options = {}) => {
+            const { mediaIndex = -1, sourceEl = null, skipQueueRefresh = false, skipEntryAnimation = false, swipeDirection = 0 } = options;
+            currentVideoUrl = String(videoUrl || '');
+            const modal = document.getElementById('videoPlayerModal');
+            const video = document.getElementById('videoPlayer');
+            const container = document.querySelector('.video-player-container');
+            const infoBar = document.getElementById('videoViewerTopInfo');
+            if (!modal || !video) return;
+            if (videoProgressInterval) {
+                clearInterval(videoProgressInterval);
+                videoProgressInterval = null;
+            }
+            if (!skipQueueRefresh) syncMediaViewerQueue(mediaIndex);
+            mediaViewerActiveType = 'video';
+            mediaViewerActiveIndex = mediaViewerItems.findIndex((entry) => entry.mediaIndex === Number(mediaIndex));
+            videoViewerScale = 1;
+            videoViewerOffsetX = 0;
+            videoViewerOffsetY = 0;
+            applyVideoViewerTransform();
+            if (infoBar) infoBar.innerHTML = getMediaViewerTopInfoHtml(item);
+            video.pause();
+            video.removeAttribute('src');
+            video.load();
+            video.src = currentVideoUrl;
+            video.load();
+            modal.classList.add('show');
+            mediaViewerUiVisible = true;
+            if (container) container.classList.add('show-ui');
+            showVideoUi();
+            if (!skipEntryAnimation) {
+                requestAnimationFrame(() => {
+                    animateMediaViewerEntry(sourceEl || getChannelMediaElement(mediaIndex), video);
+                });
+            } else if (swipeDirection) {
+                video.style.opacity = '1';
+                video.style.transition = 'none';
+                video.style.transform = `translate3d(${swipeDirection * 82}px, 0, 0) scale(1)`;
+                requestAnimationFrame(() => {
+                    video.style.transition = 'transform 0.3s cubic-bezier(0.22, 1, 0.36, 1), opacity 0.24s ease';
+                    video.style.transform = 'translate3d(0px, 0px, 0) scale(1)';
+                });
+            } else {
+                video.style.opacity = '1';
+            }
+            videoProgressInterval = setInterval(() => updateVideoProgress(), 100);
+            video.onloadedmetadata = () => updateVideoProgress();
+            video.ontimeupdate = () => updateVideoProgress();
+            video.onended = () => showVideoUi();
+            video.play().catch(() => {
+                updateVideoProgress();
+                if (container) container.classList.add('show-ui');
+            });
+        };
+
+        const closeVideoPlayer = (options = {}) => {
+            const { animateReturn = false } = options;
+            const modal = document.getElementById('videoPlayerModal');
+            const video = document.getElementById('videoPlayer');
+            const container = document.querySelector('.video-player-container');
+            const menuPopup = document.getElementById('videoViewerMenuPopup');
+            if (!modal || !video) return;
+            if (videoViewerPointerId !== null && video.hasPointerCapture?.(videoViewerPointerId)) {
+                video.releasePointerCapture(videoViewerPointerId);
+            }
+            videoViewerPointerId = null;
+            const finalizeClose = () => {
+                video.pause();
+                video.removeAttribute('src');
+                video.load();
+                modal.classList.remove('show');
+                modal.style.opacity = '';
+                modal.style.visibility = '';
+                modal.style.pointerEvents = '';
+                if (container) container.classList.remove('show-ui');
+                if (container) {
+                    container.style.transition = '';
+                    container.style.transform = '';
+                }
+                if (menuPopup) menuPopup.style.display = 'none';
+                videoViewerScale = 1;
+                videoViewerOffsetX = 0;
+                videoViewerOffsetY = 0;
+                applyVideoViewerTransform();
+                if (videoProgressInterval) {
+                    clearInterval(videoProgressInterval);
+                    videoProgressInterval = null;
+                }
+                if (videoUiTimer) {
+                    clearTimeout(videoUiTimer);
+                    videoUiTimer = null;
+                }
+            };
+            if (animateReturn) {
+                const current = mediaViewerItems[mediaViewerActiveIndex];
+                animateMediaViewerReturnToGrid(video, current?.mediaIndex, finalizeClose);
+                return;
+            }
+            finalizeClose();
+        };
+
+        const setupImageViewerGestures = () => {
+            const modal = document.getElementById('imageViewerModal');
+            const image = document.getElementById('imageViewerImage');
+            const content = document.getElementById('imageViewerContent');
+            const backBtn = document.getElementById('imageViewerBack');
+            const menuBtn = document.getElementById('imageViewerMenu');
+            const menuPopup = document.getElementById('imageViewerMenuPopup');
+            const downloadBtn = document.getElementById('imageViewerDownloadBtn');
+            if (!modal || !image) return;
+            let startDistance = 0;
+            let startScale = 1;
+            let startCenterX = 0;
+            let startCenterY = 0;
+            let startOffsetX = 0;
+            let startOffsetY = 0;
+            let dragStartX = 0;
+            let dragStartY = 0;
+            let dragging = false;
+            let lastTapAt = 0;
+            let lastMoveAt = 0;
+            let velocityX = 0;
+            let velocityY = 0;
+            const maxScale = 8;
+            const softMinScale = 0.74;
+            const softMaxScale = maxScale + 0.8;
+            let transformFrame = null;
+            const applyTransform = () => {
+                if (transformFrame) return;
+                transformFrame = requestAnimationFrame(() => {
+                    image.style.transform = `translate3d(${viewerOffsetX}px, ${viewerOffsetY}px, 0) scale(${viewerScale})`;
+                    image.classList.toggle('zoomed', viewerScale > 1.01);
+                    transformFrame = null;
+                });
+            };
+            const clampImageOffset = (soft = false) => {
+                if (!content) return;
+                if (viewerScale <= 1.01) {
+                    viewerOffsetX = 0;
+                    viewerOffsetY = 0;
+                    return;
+                }
+                const bounds = content.getBoundingClientRect();
+                const naturalW = image.naturalWidth || bounds.width || 1;
+                const naturalH = image.naturalHeight || bounds.height || 1;
+                const fitScale = Math.min(bounds.width / naturalW, bounds.height / naturalH);
+                const baseW = naturalW * fitScale;
+                const baseH = naturalH * fitScale;
+                const scaledW = baseW * viewerScale;
+                const scaledH = baseH * viewerScale;
+                const maxX = Math.max(0, (scaledW - bounds.width) / 2);
+                const maxY = Math.max(0, (scaledH - bounds.height) / 2);
+                if (soft) {
+                    const overX = Math.abs(viewerOffsetX) - maxX;
+                    const overY = Math.abs(viewerOffsetY) - maxY;
+                    if (overX > 0) viewerOffsetX = Math.sign(viewerOffsetX) * (maxX + overX * 0.28);
+                    if (overY > 0) viewerOffsetY = Math.sign(viewerOffsetY) * (maxY + overY * 0.28);
+                } else {
+                    viewerOffsetX = Math.max(-maxX, Math.min(maxX, viewerOffsetX));
+                    viewerOffsetY = Math.max(-maxY, Math.min(maxY, viewerOffsetY));
+                }
+            };
+            const startImageMomentum = () => {
+                if (viewerScale <= 1.01) return;
+                if (imageViewerMomentumFrame) cancelAnimationFrame(imageViewerMomentumFrame);
+                let localVX = velocityX;
+                let localVY = velocityY;
+                if (Math.abs(localVX) < 0.006 && Math.abs(localVY) < 0.006) return;
+                const step = () => {
+                    localVX *= 0.93;
+                    localVY *= 0.93;
+                    viewerOffsetX += localVX * 16;
+                    viewerOffsetY += localVY * 16;
+                    clampImageOffset(true);
+                    applyTransform();
+                    if (Math.abs(localVX) > 0.006 || Math.abs(localVY) > 0.006) {
+                        imageViewerMomentumFrame = requestAnimationFrame(step);
+                    } else {
+                        clampImageOffset(false);
+                        applyTransform();
+                        imageViewerMomentumFrame = null;
+                    }
+                };
+                imageViewerMomentumFrame = requestAnimationFrame(step);
+            };
+            const springToOrigin = () => {
+                if (mediaViewerSpringFrame) cancelAnimationFrame(mediaViewerSpringFrame);
+                const tick = () => {
+                    const ds = 1 - viewerScale;
+                    const dx = -viewerOffsetX;
+                    const dy = -viewerOffsetY;
+                    viewerScale += ds * 0.22;
+                    viewerOffsetX += dx * 0.2;
+                    viewerOffsetY += dy * 0.2;
+                    applyTransform();
+                    if (Math.abs(ds) > 0.002 || Math.abs(dx) > 0.35 || Math.abs(dy) > 0.35) {
+                        mediaViewerSpringFrame = requestAnimationFrame(tick);
+                    } else {
+                        viewerScale = 1;
+                        viewerOffsetX = 0;
+                        viewerOffsetY = 0;
+                        applyTransform();
+                        mediaViewerSpringFrame = null;
+                    }
+                };
+                mediaViewerSpringFrame = requestAnimationFrame(tick);
+            };
+            const touchDistance = (touches) => Math.hypot(touches[0].clientX - touches[1].clientX, touches[0].clientY - touches[1].clientY);
+            const touchCenter = (touches) => ({ x: (touches[0].clientX + touches[1].clientX) / 2, y: (touches[0].clientY + touches[1].clientY) / 2 });
+            image.addEventListener('touchstart', (e) => {
+                if (imageViewerMomentumFrame) cancelAnimationFrame(imageViewerMomentumFrame);
+                velocityX = 0;
+                velocityY = 0;
+                if (e.touches.length === 2) {
+                    e.preventDefault();
+                    startDistance = touchDistance(e.touches);
+                    startScale = viewerScale;
+                    const center = touchCenter(e.touches);
+                    startCenterX = center.x;
+                    startCenterY = center.y;
+                    startOffsetX = viewerOffsetX;
+                    startOffsetY = viewerOffsetY;
+                    dragging = false;
+                } else if (e.touches.length === 1 && viewerScale > 1.01) {
+                    e.preventDefault();
+                    dragStartX = e.touches[0].clientX - viewerOffsetX;
+                    dragStartY = e.touches[0].clientY - viewerOffsetY;
+                    dragging = true;
+                } else {
+                    dragging = false;
+                }
+            }, { passive: false });
+            image.addEventListener('touchmove', (e) => {
+                if (e.touches.length === 2) {
+                    e.preventDefault();
+                    const distance = touchDistance(e.touches);
+                    const center = touchCenter(e.touches);
+                    const rawScale = startScale * (distance / Math.max(1, startDistance));
+                    if (rawScale < 1) viewerScale = Math.max(softMinScale, 1 - ((1 - rawScale) * 0.3));
+                    else if (rawScale > maxScale) viewerScale = Math.min(softMaxScale, maxScale + ((rawScale - maxScale) * 0.22));
+                    else viewerScale = rawScale;
+                    viewerOffsetX = startOffsetX + (center.x - startCenterX);
+                    viewerOffsetY = startOffsetY + (center.y - startCenterY);
+                    clampImageOffset(true);
+                    applyTransform();
+                } else if (e.touches.length === 1 && dragging) {
+                    e.preventDefault();
+                    const nextX = e.touches[0].clientX - dragStartX;
+                    const nextY = e.touches[0].clientY - dragStartY;
+                    const now = performance.now();
+                    const dt = Math.max(1, now - (lastMoveAt || now));
+                    velocityX = (nextX - viewerOffsetX) / dt;
+                    velocityY = (nextY - viewerOffsetY) / dt;
+                    viewerOffsetX = nextX;
+                    viewerOffsetY = nextY;
+                    lastMoveAt = now;
+                    clampImageOffset(true);
+                    applyTransform();
+                }
+            }, { passive: false });
+            image.addEventListener('touchend', (e) => {
+                if (e.touches.length === 0) {
+                    dragging = false;
+                    if (viewerScale < 1) springToOrigin();
+                    else if (viewerScale < 1.01) {
+                        viewerScale = 1;
+                        viewerOffsetX = 0;
+                        viewerOffsetY = 0;
+                        applyTransform();
+                    } else {
+                        clampImageOffset(false);
+                        applyTransform();
+                        startImageMomentum();
+                    }
+                } else if (e.touches.length === 1) {
+                    dragStartX = e.touches[0].clientX - viewerOffsetX;
+                    dragStartY = e.touches[0].clientY - viewerOffsetY;
+                    dragging = true;
+                }
+            }, { passive: true });
+            image.addEventListener('wheel', (e) => {
+                e.preventDefault();
+                const rect = image.getBoundingClientRect();
+                const cx = e.clientX - rect.left - rect.width / 2;
+                const cy = e.clientY - rect.top - rect.height / 2;
+                const zoomFactor = e.deltaY < 0 ? 1.12 : 0.9;
+                const prevScale = viewerScale;
+                viewerScale = Math.max(1, Math.min(maxScale, viewerScale * zoomFactor));
+                const ratio = viewerScale / prevScale;
+                viewerOffsetX -= cx * (ratio - 1);
+                viewerOffsetY -= cy * (ratio - 1);
+                applyTransform();
+            }, { passive: false });
+            image.addEventListener('dblclick', (e) => {
+                e.preventDefault();
+                if (viewerScale > 1.01) {
+                    viewerScale = 1;
+                    viewerOffsetX = 0;
+                    viewerOffsetY = 0;
+                } else {
+                    viewerScale = 2.5;
+                }
+                applyTransform();
+            });
+            image.addEventListener('click', (e) => {
+                const now = Date.now();
+                if (now - lastTapAt < 280) return;
+                lastTapAt = now;
+                e.preventDefault();
+                mediaViewerUiVisible = !mediaViewerUiVisible;
+                modal.classList.toggle('chrome-hidden', !mediaViewerUiVisible);
+            });
+            backBtn?.addEventListener('click', () => closeImageViewer({ animateReturn: true }));
+            menuBtn?.addEventListener('click', (e) => {
+                e.stopPropagation();
+                menuPopup?.classList.toggle('open');
+            });
+            downloadBtn?.addEventListener('click', (e) => {
+                e.stopPropagation();
+                if (!currentViewerSrc) return;
+                const a = document.createElement('a');
+                a.href = currentViewerSrc;
+                a.download = '';
+                a.target = '_blank';
+                document.body.appendChild(a);
+                a.click();
+                a.remove();
+                menuPopup?.classList.remove('open');
+            });
+            document.addEventListener('click', (e) => {
+                if (!e.target.closest('#imageViewerMenu') && !e.target.closest('#imageViewerMenuPopup')) menuPopup?.classList.remove('open');
+            });
+            if (!content) return;
+            let swipeStartY = 0;
+            let swipeStartX = 0;
+            let swipeActive = false;
+            let swipeAxis = '';
+            let swipeDx = 0;
+            let swipeSwitched = false;
+            content.addEventListener('touchstart', (e) => {
+                if (e.touches.length === 1 && viewerScale <= 1.02) {
+                    swipeStartY = e.touches[0].clientY;
+                    swipeStartX = e.touches[0].clientX;
+                    swipeActive = true;
+                    swipeAxis = '';
+                    swipeDx = 0;
+                    swipeSwitched = false;
+                } else {
+                    swipeActive = false;
+                }
+            }, { passive: true });
+            content.addEventListener('touchmove', (e) => {
+                if (!swipeActive || e.touches.length !== 1) return;
+                const swipeDy = e.touches[0].clientY - swipeStartY;
+                swipeDx = e.touches[0].clientX - swipeStartX;
+                const absDy = Math.abs(swipeDy);
+                const absDx = Math.abs(swipeDx);
+                if (!swipeAxis && (absDx > 7 || absDy > 7)) swipeAxis = absDx > absDy ? 'x' : 'y';
+                if (swipeAxis === 'y' && swipeDy > 0) {
+                    e.preventDefault();
+                    const t = Math.min(1, swipeDy / 300);
+                    modal.style.opacity = String(1 - t * 0.78);
+                    content.style.transform = `translateY(${swipeDy}px) scale(${1 - t * 0.04})`;
+                } else if (swipeAxis === 'x') {
+                    e.preventDefault();
+                    content.style.transition = 'none';
+                    content.style.transform = `translateX(${swipeDx * 0.62}px)`;
+                    if (!swipeSwitched && Math.abs(swipeDx) > 52) {
+                        const changed = navigateMediaViewer(swipeDx < 0 ? 1 : -1, { gesture: true });
+                        if (changed) {
+                            swipeSwitched = true;
+                            swipeActive = false;
+                            content.style.transition = '';
+                            content.style.transform = '';
+                        }
+                    }
+                }
+            }, { passive: false });
+            content.addEventListener('touchend', (e) => {
+                if (!swipeActive) return;
+                const endY = (e.changedTouches && e.changedTouches[0]?.clientY) || 0;
+                const dy = endY - swipeStartY;
+                const shouldClose = swipeAxis === 'y' && dy > 120;
+                const shouldNavigate = swipeAxis === 'x' && Math.abs(swipeDx) > 50;
+                if (shouldClose) {
+                    modal.style.opacity = '';
+                    closeImageViewer({ animateReturn: true });
+                } else if (shouldNavigate && !swipeSwitched) {
+                    modal.style.opacity = '';
+                    content.style.transform = '';
+                    navigateMediaViewer(swipeDx < 0 ? 1 : -1, { gesture: true });
+                } else {
+                    modal.style.opacity = '1';
+                    content.style.transition = '';
+                    content.style.transform = '';
+                }
+                swipeActive = false;
+                swipeAxis = '';
+            });
+            content.addEventListener('touchcancel', () => {
+                swipeActive = false;
+                swipeAxis = '';
+                modal.style.opacity = '';
+                content.style.transition = '';
+                content.style.transform = '';
+            });
+        };
+
+        const setupVideoPlayer = () => {
+            videoPlayerEl = document.getElementById('videoPlayer');
+            const videoModal = document.getElementById('videoPlayerModal');
+            const videoProgress = document.getElementById('videoProgress');
+            const videoPlayBtn = document.getElementById('videoPlayerPlay');
+            const videoHit = document.getElementById('videoPlayerHit');
+            const centerPlay = document.getElementById('videoCenterPlay');
+            const container = document.querySelector('.video-player-container');
+            const topBack = document.getElementById('videoViewerBack');
+            const topMenu = document.getElementById('videoViewerMenu');
+            const topMenuPopup = document.getElementById('videoViewerMenuPopup');
+            const topDownload = document.getElementById('videoViewerDownloadBtn');
+            const skipFeedback = document.getElementById('videoSkipFeedback');
+            let pointerDownX = 0;
+            let pointerDownY = 0;
+            let pointerMoved = false;
+            let lastVideoTapAt = 0;
+            let singleVideoTapTimer = null;
+            if (!videoPlayerEl) return;
+            videoPlayerEl.controls = false;
+            videoPlayerEl.playsInline = true;
+            videoPlayerEl.setAttribute('playsinline', '');
+            videoPlayerEl.preload = 'metadata';
+            const animateControlPress = (el) => {
+                if (!el) return;
+                el.classList.add('pressed');
+                setTimeout(() => el.classList.remove('pressed'), 180);
+            };
+            const showSkipFeedback = (seconds) => {
+                if (!skipFeedback) return;
+                const isBackward = seconds < 0;
+                const amount = Math.abs(Math.round(seconds));
+                skipFeedback.textContent = `${isBackward ? '−' : '+'}${amount} сек`;
+                skipFeedback.classList.add('show');
+                setTimeout(() => skipFeedback.classList.remove('show'), 340);
+            };
+            videoPlayBtn?.addEventListener('click', () => {
+                animateControlPress(videoPlayBtn);
+                toggleVideoPlay();
+            });
+            centerPlay?.addEventListener('click', () => {
+                animateControlPress(centerPlay);
+                centerPlay.classList.add('pop');
+                setTimeout(() => centerPlay.classList.remove('pop'), 360);
+                toggleVideoPlay();
+            });
+            topBack?.addEventListener('click', () => closeVideoPlayer({ animateReturn: true }));
+            topMenu?.addEventListener('click', (e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                if (!topMenuPopup) return;
+                topMenuPopup.style.display = topMenuPopup.style.display === 'block' ? 'none' : 'block';
+            });
+            topDownload?.addEventListener('click', (e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                const src = currentVideoUrl || videoPlayerEl?.currentSrc || videoPlayerEl?.src || '';
+                if (!src) return;
+                const a = document.createElement('a');
+                a.href = src;
+                a.download = '';
+                a.target = '_blank';
+                a.rel = 'noopener';
+                a.click();
+                if (topMenuPopup) topMenuPopup.style.display = 'none';
+            });
+            if (videoProgress) {
+                let progressDrag = false;
+                const seekToClientX = (clientX) => {
+                    const rect = videoProgress.getBoundingClientRect();
+                    const pos = Math.max(0, Math.min(1, (clientX - rect.left) / Math.max(1, rect.width)));
+                    if (videoPlayerEl && videoPlayerEl.duration) {
+                        videoPlayerEl.currentTime = pos * videoPlayerEl.duration;
+                        updateVideoProgress();
+                    }
+                };
+                videoProgress.addEventListener('pointerdown', (e) => {
+                    progressDrag = true;
+                    videoProgress.classList.add('dragging');
+                    seekToClientX(e.clientX);
+                    videoProgress.setPointerCapture?.(e.pointerId);
+                });
+                videoProgress.addEventListener('pointermove', (e) => {
+                    if (!progressDrag) return;
+                    seekToClientX(e.clientX);
+                });
+                const endProgressDrag = (e) => {
+                    if (!progressDrag) return;
+                    progressDrag = false;
+                    videoProgress.classList.remove('dragging');
+                    videoProgress.releasePointerCapture?.(e.pointerId);
+                };
+                videoProgress.addEventListener('pointerup', endProgressDrag);
+                videoProgress.addEventListener('pointercancel', endProgressDrag);
+                videoProgress.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    seekToClientX(e.clientX);
+                });
+            }
+            if (videoModal) {
+                videoModal.addEventListener('click', (e) => {
+                    if (e.target === videoModal) closeVideoPlayer();
+                });
+                videoModal.addEventListener('click', (e) => {
+                    if (!e.target.closest('#videoViewerMenu') && !e.target.closest('#videoViewerMenuPopup')) {
+                        if (topMenuPopup) topMenuPopup.style.display = 'none';
+                    }
+                });
+            }
+            if (videoHit) {
+                videoHit.style.pointerEvents = 'all';
+                videoHit.addEventListener('click', (e) => {
+                    const now = Date.now();
+                    const rect = videoHit.getBoundingClientRect();
+                    if (now - lastVideoTapAt < 290) {
+                        if (singleVideoTapTimer) {
+                            clearTimeout(singleVideoTapTimer);
+                            singleVideoTapTimer = null;
+                        }
+                        const onLeft = (e.clientX - rect.left) < (rect.width / 2);
+                        const shift = onLeft ? -5 : 5;
+                        if (Number.isFinite(videoPlayerEl.duration) && videoPlayerEl.duration > 0) {
+                            const next = Math.max(0, Math.min(videoPlayerEl.duration, videoPlayerEl.currentTime + shift));
+                            videoPlayerEl.currentTime = next;
+                            updateVideoProgress();
+                            showVideoUi(false);
+                            showSkipFeedback(shift);
+                        }
+                        lastVideoTapAt = 0;
+                        return;
+                    }
+                    lastVideoTapAt = now;
+                    singleVideoTapTimer = setTimeout(() => {
+                        toggleVideoPlay();
+                        showVideoUi();
+                        singleVideoTapTimer = null;
+                    }, 250);
+                });
+            }
+            if (!container) return;
+            container.addEventListener('mousemove', () => showVideoUi());
+            container.addEventListener('pointerdown', (e) => {
+                if (e.pointerType === 'mouse' && e.button !== 0) return;
+                pointerMoved = false;
+                pointerDownX = e.clientX;
+                pointerDownY = e.clientY;
+            });
+            container.addEventListener('pointermove', (e) => {
+                if (Math.abs(e.clientX - pointerDownX) > 9 || Math.abs(e.clientY - pointerDownY) > 9) pointerMoved = true;
+            });
+            container.addEventListener('pointerup', (e) => {
+                if (pointerMoved || videoViewerScale > 1.02) return;
+                if (e.target.closest('.video-player-controls, .video-player-center-btn, .iv-glass, .iv-popup')) return;
+                const visible = container.classList.contains('show-ui');
+                if (visible) {
+                    mediaViewerUiVisible = false;
+                    if (videoUiTimer) clearTimeout(videoUiTimer);
+                    container.classList.remove('show-ui');
+                } else {
+                    showVideoUi(false);
+                }
+            });
+            let swipeStartY = 0;
+            let swipeStartX = 0;
+            let swipeActive = false;
+            let swipeAxis = '';
+            let swipeDx = 0;
+            let swipeSwitched = false;
+            container.addEventListener('touchstart', (e) => {
+                if (!e.touches || e.touches.length !== 1) {
+                    swipeActive = false;
+                    return;
+                }
+                if (videoViewerScale > 1.02 || e.target.closest('.video-player-controls, .iv-popup')) {
+                    swipeActive = false;
+                    return;
+                }
+                swipeStartY = e.touches[0].clientY;
+                swipeStartX = e.touches[0].clientX;
+                swipeActive = true;
+                swipeAxis = '';
+                swipeDx = 0;
+                swipeSwitched = false;
+            }, { passive: true });
+            container.addEventListener('touchmove', (e) => {
+                if (!swipeActive || !e.touches || e.touches.length !== 1) return;
+                const swipeDy = e.touches[0].clientY - swipeStartY;
+                swipeDx = e.touches[0].clientX - swipeStartX;
+                const absDy = Math.abs(swipeDy);
+                const absDx = Math.abs(swipeDx);
+                if (!swipeAxis && (absDx > 8 || absDy > 8)) swipeAxis = absDx > absDy ? 'x' : 'y';
+                if (swipeAxis === 'y' && swipeDy > 0) {
+                    const shift = Math.min(220, swipeDy);
+                    const progress = Math.min(1, shift / 220);
+                    e.preventDefault();
+                    container.style.transition = 'none';
+                    container.style.transform = `translateY(${shift}px) scale(${1 - progress * 0.04})`;
+                    if (videoModal) videoModal.style.opacity = String(Math.max(0.35, 1 - progress * 0.7));
+                } else if (swipeAxis === 'x') {
+                    e.preventDefault();
+                    container.style.transition = 'none';
+                    container.style.transform = `translateX(${swipeDx * 0.62}px)`;
+                    if (!swipeSwitched && Math.abs(swipeDx) > 52) {
+                        const changed = navigateMediaViewer(swipeDx < 0 ? 1 : -1, { gesture: true });
+                        if (changed) {
+                            swipeSwitched = true;
+                            swipeActive = false;
+                            container.style.transition = '';
+                            container.style.transform = '';
+                            if (videoModal) videoModal.style.opacity = '';
+                        }
+                    }
+                }
+            }, { passive: false });
+            container.addEventListener('touchend', (e) => {
+                if (!swipeActive) return;
+                const endY = e.changedTouches?.[0]?.clientY ?? swipeStartY;
+                const dy = endY - swipeStartY;
+                const shouldClose = swipeAxis === 'y' && dy > 120;
+                const shouldNavigate = swipeAxis === 'x' && Math.abs(swipeDx) > 50;
+                if (!shouldClose) {
+                    container.style.transition = '';
+                    container.style.transform = '';
+                    if (videoModal) videoModal.style.opacity = '';
+                }
+                swipeActive = false;
+                swipeAxis = '';
+                if (shouldClose) {
+                    if (videoModal) videoModal.style.opacity = '';
+                    closeVideoPlayer({ animateReturn: true });
+                } else if (shouldNavigate && !swipeSwitched) {
+                    navigateMediaViewer(swipeDx < 0 ? 1 : -1, { gesture: true });
+                }
+            }, { passive: true });
+            container.addEventListener('touchcancel', () => {
+                container.style.transition = '';
+                container.style.transform = '';
+                if (videoModal) videoModal.style.opacity = '';
+                swipeActive = false;
+                swipeAxis = '';
+            }, { passive: true });
+        };
+
+        const renderMediaTab = (tabName = currentMediaTab) => {
+            currentMediaTab = tabName;
+            const content = document.getElementById('channelMediaContent');
+            if (!content) return;
+            let html = '';
+            if (tabName === 'media') {
+                if (!mediaItems.length) {
+                    html = '<div class="media-empty"><p>Нет медиафайлов</p><small>Фото и видео из канала появятся здесь</small></div>';
+                } else {
+                    html = '<div class="media-grid">';
+                    mediaItems.forEach((item, index) => {
+                        html += `
+                            <div class="media-grid-item ${item.isVideo ? 'video' : ''}" data-media-src="${escapeHtml(item.src)}" data-media-index="${index}">
+                                ${item.isVideo ? `<video src="${escapeHtml(item.src)}" preload="metadata"></video>` : `<img src="${escapeHtml(item.src)}" loading="lazy" alt="">`}
+                            </div>
+                        `;
+                    });
+                    html += '</div>';
+                }
+            } else if (tabName === 'voice') {
+                if (!voiceItems.length) {
+                    html = '<div class="media-empty"><p>Нет голосовых</p><small>Голосовые сообщения из канала появятся здесь</small></div>';
+                } else {
+                    html = '<div class="voice-list">';
+                    voiceItems.forEach((item) => {
+                        html += `
+                            <div class="voice-item">
+                                <div class="item-meta">${escapeHtml(item.sender_name)} · ${escapeHtml(formatItemDate(item.created_at))}</div>
+                                <audio controls preload="none" src="${escapeHtml(item.src)}"></audio>
+                            </div>
+                        `;
+                    });
+                    html += '</div>';
+                }
+            } else {
+                if (!linkItems.length) {
+                    html = '<div class="media-empty"><p>Нет ссылок</p><small>Ссылки из сообщений канала появятся здесь</small></div>';
+                } else {
+                    html = '<div class="links-list">';
+                    linkItems.forEach((item) => {
+                        html += `
+                            <div class="link-item">
+                                <div class="item-meta">${escapeHtml(item.sender_name)} · ${escapeHtml(formatItemDate(item.created_at))}</div>
+                                <a href="${escapeHtml(item.url)}" target="_blank" rel="noopener">${escapeHtml(item.url)}</a>
+                            </div>
+                        `;
+                    });
+                    html += '</div>';
+                }
+            }
+            content.innerHTML = html;
+            document.querySelectorAll('.glass-tab').forEach((tab) => tab.classList.toggle('active', tab.dataset.tab === currentMediaTab));
+            content.querySelectorAll('.media-grid-item').forEach((item) => {
+                item.addEventListener('click', (e) => openMediaItem(Number(item.dataset.mediaIndex), e));
+            });
+        };
+
+        const setupAvatarPullToExpand = () => {
+            const avatarSection = document.getElementById('avatarSection');
+            const channelContent = document.getElementById('channelContent');
+            const avatarBox = avatarSection ? avatarSection.querySelector('.avatar-box') : null;
+            if (!avatarSection || !channelContent || avatarSection.dataset.pullBound === '1') return;
+            avatarSection.dataset.pullBound = '1';
+
+            const expandAvatar = () => {
+                if (avatarState !== 'normal') return;
+                avatarState = 'expanded';
+                avatarSection.classList.add('expanded');
+            };
+
+            const collapseAvatar = () => {
+                if (avatarState !== 'expanded') return;
+                avatarState = 'normal';
+                avatarSection.classList.remove('expanded');
+            };
+
+            const enterFullscreen = () => {
+                if (avatarState === 'normal') return;
+                avatarState = 'fullscreen';
+                avatarSection.classList.add('fullscreen');
+                channelContent.style.overflow = 'hidden';
+            };
+
+            const exitFullscreen = () => {
+                if (avatarState !== 'fullscreen') return;
+                avatarState = 'expanded';
+                avatarSection.classList.remove('fullscreen');
+                channelContent.style.overflow = '';
+            };
+
+            avatarSection.addEventListener('touchstart', (e) => {
+                if (!e.touches || e.touches.length !== 1) return;
+                avatarPullStartY = e.touches[0].clientY;
+                if (avatarState === 'fullscreen') {
+                    isPullingAvatar = true;
+                    return;
+                }
+                const startedOnAvatar = avatarBox ? avatarBox.contains(e.target) : false;
+                const atTop = channelContent.scrollTop <= 4;
+                isPullingAvatar = startedOnAvatar && atTop;
+            }, { passive: true });
+
+            avatarSection.addEventListener('touchmove', (e) => {
+                if ((!isPullingAvatar && avatarState !== 'fullscreen') || !e.touches || e.touches.length !== 1) return;
+                const deltaY = e.touches[0].clientY - avatarPullStartY;
+                if (avatarState === 'fullscreen') {
+                    if (deltaY > 30) {
+                        e.preventDefault();
+                        exitFullscreen();
+                        isPullingAvatar = false;
+                    }
+                } else if (isPullingAvatar) {
+                    e.preventDefault();
+                    if (deltaY < -30) {
+                        if (avatarState === 'normal' && Math.abs(deltaY) > 50) {
+                            expandAvatar();
+                            isPullingAvatar = false;
+                        } else if (avatarState === 'expanded' && Math.abs(deltaY) > 80) {
+                            enterFullscreen();
+                            isPullingAvatar = false;
+                        }
+                    } else if (deltaY > 30 && avatarState === 'expanded') {
+                        collapseAvatar();
+                        isPullingAvatar = false;
+                    }
+                }
+            }, { passive: false });
+
+            avatarSection.addEventListener('touchend', () => {
+                isPullingAvatar = false;
+            }, { passive: true });
+
+            avatarSection.addEventListener('touchcancel', () => {
+                isPullingAvatar = false;
+            }, { passive: true });
+
+            avatarSection.addEventListener('click', () => {
+                if (avatarState === 'fullscreen') {
+                    exitFullscreen();
+                } else if (avatarState === 'expanded') {
+                    enterFullscreen();
+                }
+            });
+        };
+
+        const getReasonText = (reason) => {
+            const reasons = {
+                abuse: 'Жестокое обращение',
+                violence: 'Насилие',
+                illegal_goods: 'Незаконные товары и услуги',
+                illegal_adult: 'Незаконный контент для взрослых',
+                personal_data: 'Персональные данные',
+                dislike: 'Мне это не нравится',
+                fraud: 'Мошенничество или мошенничество',
+                copyright: 'Нарушение авторских прав',
+                spam: 'Спам',
+                custom: 'Своя причина'
+            };
+            return reasons[reason] || reason;
+        };
+
+        const renderReportReasons = () => {
+            if (!reportReasonsList) return;
+            reportReasonsList.innerHTML = reportReasons.map((reason) => `
+                <button class="report-reason-item" type="button" data-reason="${reason.key}">
+                    <div class="report-reason-icon">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <circle cx="12" cy="12" r="9"></circle>
+                            <path d="M12 7v6"></path>
+                            <circle cx="12" cy="17" r="1"></circle>
+                        </svg>
+                    </div>
+                    <div>
+                        <div class="report-reason-title">${reason.title}</div>
+                        <div class="report-reason-desc">${reason.desc}</div>
+                    </div>
+                </button>
+            `).join('');
+        };
+
+        const openReportModal = () => {
+            if (!channel || !currentUser?.id) return;
+            selectedReportReason = null;
+            customReasonInput.value = '';
+            customReasonInput.style.display = 'none';
+            submitReportBtn.disabled = true;
+            reportReasonsList.querySelectorAll('.report-reason-item').forEach((item) => item.classList.remove('selected'));
+            reportModal.classList.add('show');
+        };
+
+        const closeReportModal = () => {
+            reportModal.classList.remove('show');
+        };
+
+        const submitReport = async () => {
+            if (!channel || !currentUser?.id || !selectedReportReason) return;
+            const reportedUserId = Number(channel.owner_id || 0);
+            if (!reportedUserId) {
+                showToast('Не удалось определить владельца канала');
+                return;
+            }
+            const customReason = selectedReportReason === 'custom' ? customReasonInput.value.trim() : '';
+            if (selectedReportReason === 'custom' && !customReason) {
+                showToast('Пожалуйста, напишите причину жалобы');
+                return;
+            }
+            const contextText = `Источник: Канал #${channel.id || channelId}${channel.name ? ` (${channel.name})` : ''}`;
+            const customReasonPayload = selectedReportReason === 'custom'
+                ? `${customReason}\n\n${contextText}`
+                : contextText;
+
+            submitReportBtn.disabled = true;
+            submitReportBtn.textContent = 'Отправка...';
+            try {
+                const data = await apiPost('report_user', {
+                    reporter_id: currentUser.id,
+                    reported_user_id: reportedUserId,
+                    reason: getReasonText(selectedReportReason),
+                    custom_reason: customReasonPayload
+                });
+                if (data.success) {
+                    showToast('Жалоба отправлена. Спасибо!');
+                    closeReportModal();
+                } else {
+                    showToast(data.message || 'Ошибка отправки жалобы');
+                }
+            } catch (_) {
+                showToast('Ошибка соединения');
+            } finally {
+                submitReportBtn.disabled = false;
+                submitReportBtn.textContent = 'Отправить жалобу';
+            }
+        };
+
+        const setupReportModal = () => {
+            renderReportReasons();
+            reportReasonsList.querySelectorAll('.report-reason-item').forEach((item) => {
+                item.addEventListener('click', () => {
+                    reportReasonsList.querySelectorAll('.report-reason-item').forEach((i) => i.classList.remove('selected'));
+                    item.classList.add('selected');
+                    selectedReportReason = item.dataset.reason || null;
+                    if (selectedReportReason === 'custom') {
+                        customReasonInput.style.display = 'block';
+                        customReasonInput.focus();
+                    } else {
+                        customReasonInput.style.display = 'none';
+                        customReasonInput.value = '';
+                    }
+                    submitReportBtn.disabled = !selectedReportReason;
+                });
+            });
+            closeReportModalBtn?.addEventListener('click', closeReportModal);
+            cancelReportBtn?.addEventListener('click', closeReportModal);
+            submitReportBtn?.addEventListener('click', submitReport);
+            reportModal?.addEventListener('click', (e) => {
+                if (e.target === reportModal) closeReportModal();
+            });
+        };
+
+        const reportChannel = () => openReportModal();
+
+        const render = () => {
+            const container = document.getElementById('channelContent');
+            if (!channel) {
+                container.innerHTML = '<div class="empty-state" style="margin-top: 100px;">Канал не найден</div>';
+                return;
+            }
+
+            const subsCount = channel.members_count || (channel.member_ids || []).length || 0;
+            const link = channel.invite_link || (channel.group_type === 'public' 
+                ? `https://tobebe.online/to.be.html?channel=${channel.public_id || ''}`
+                : `https://tobebe.online/to.be.html?channel_token=${channel.invite_token || ''}`);
+            const canEdit = channel.can_edit || channel.is_owner || channel.is_admin;
+            const isOwner = channel.is_owner;
+
+            document.getElementById('editTopBtn').style.display = canEdit ? 'flex' : 'none';
+            document.getElementById('headerTitle').textContent = channel.name || 'Канал';
+
+            container.innerHTML = `
+                <div class="avatar-section" id="avatarSection">
+                    <div class="avatar-wrapper">
+                        <div class="avatar-box">
+                            ${channel.avatar ? `<img src="${escapeHtml(channel.avatar)}">` : escapeHtml((channel.name || 'К').charAt(0).toUpperCase())}
+                        </div>
+                    </div>
+                    <div class="channel-name">
+                        <div class="name-text">${escapeHtml(channel.name || 'Канал')}</div>
+                    </div>
+                    <div class="stats-row">
+                        <svg class="stats-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+                            <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
+                            <circle cx="9" cy="7" r="4"/>
+                            <path d="M23 21v-2a4 4 0 0 0-3-3.87"/>
+                            <path d="M16 3.13a4 4 0 0 1 0 7.75"/>
+                        </svg>
+                        <span class="stats-count">${subsCount}</span>
+                        <span class="stats-label">${getWord(subsCount, ['подписчик', 'подписчика', 'подписчиков'])}</span>
+                    </div>
+                </div>
+
+                <div class="actions">
+                    ${!editMode ? `<button class="action-btn" id="reportBtn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><line x1="12" y1="8" x2="12" y2="12"/><circle cx="12" cy="16" r="0.5" fill="currentColor" stroke="none"/></svg>Жалоба</button>` : ''}
+                    ${!isOwner ? `<button class="action-btn" id="leaveBtn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>Покинуть</button>` : ''}
+                </div>
+
+                <div class="info-card">
+                    <div class="info-row" id="linkRow">
+                        <div class="info-label"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg>Ссылка-приглашение</div>
+                        <div class="info-value link-value">${escapeHtml(link)}</div>
+                    </div>
+                    <div class="info-row">
+                        <div class="info-label"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>Описание</div>
+                        <div class="info-value">${escapeHtml(channel.description || 'Описание отсутствует')}</div>
+                    </div>
+                </div>
+
+                <div class="media-slider-section">
+                    <div class="glass-tab-bar">
+                        <button class="glass-tab active" data-tab="media">Медиа</button>
+                        <button class="glass-tab" data-tab="voice">Голосовые</button>
+                        <button class="glass-tab" data-tab="links">Ссылки</button>
+                    </div>
+                    <div class="media-content" id="channelMediaContent"></div>
+                </div>
+            `;
+
+            document.getElementById('reportBtn')?.addEventListener('click', reportChannel);
+            document.getElementById('leaveBtn')?.addEventListener('click', leaveChannel);
+            document.getElementById('linkRow')?.addEventListener('click', () => copyLink(link));
+            document.querySelectorAll('.glass-tab').forEach((tabBtn) => {
+                tabBtn.addEventListener('click', () => renderMediaTab(tabBtn.dataset.tab || 'media'));
+            });
+            renderMediaTab(currentMediaTab);
+            setupAvatarPullToExpand();
+            const avatarSection = document.getElementById('avatarSection');
+            if (avatarSection) {
+                avatarSection.classList.toggle('expanded', avatarState !== 'normal');
+                avatarSection.classList.toggle('fullscreen', avatarState === 'fullscreen');
+            }
+        };
+
+        const init = async () => {
+            if (!channelId || !currentUser?.id) {
+                document.getElementById('channelContent').innerHTML = '<div class="empty-state" style="margin-top: 100px;">Канал не указан</div>';
+                return;
+            }
+            channel = await fetchChannel();
+            await loadChannelMediaData();
+            render();
+            setupImageViewerGestures();
+            setupVideoPlayer();
+            
+            document.querySelectorAll('.editor-tab').forEach(tab => {
+                tab.addEventListener('click', () => {
+                    document.querySelectorAll('.editor-tab').forEach(t => t.classList.remove('active'));
+                    tab.classList.add('active');
+                    document.querySelectorAll('.editor-tab-content').forEach(content => content.classList.remove('active'));
+                    const tabId = tab.dataset.tab;
+                    if (tabId === 'main') document.getElementById('tabMain').classList.add('active');
+                    if (tabId === 'admins') document.getElementById('tabAdmins').classList.add('active');
+                    if (tabId === 'subscribers') document.getElementById('tabSubscribers').classList.add('active');
+                });
+            });
+            
+            const publicIdInput = document.getElementById('editPublicId');
+            if (publicIdInput) {
+                publicIdInput.addEventListener('input', updatePublicIdHint);
+            }
+            
+            const adminSearch = document.getElementById('adminSearchInput');
+            if (adminSearch) {
+                adminSearch.addEventListener('input', (e) => {
+                    const q = e.target.value.toLowerCase();
+                    const adminIds = new Set(adminsList.map(a => Number(a.id)));
+                    const candidates = allUsers.filter(u => !adminIds.has(Number(u.id)) && Number(u.id) !== Number(channel?.owner_id));
+                    const filtered = candidates.filter(u => 
+                        (u.username || '').toLowerCase().includes(q) || 
+                        (u.display_name || '').toLowerCase().includes(q)
+                    );
+                    const usersContainer = document.getElementById('usersList');
+                    if (usersContainer && channel?.is_owner) {
+                        usersContainer.innerHTML = filtered.length ? filtered.map(user => `
+                            <div class="user-list-item">
+                                <div class="user-list-avatar">${user.avatar ? `<img src="${escapeHtml(user.avatar)}">` : (user.display_name || user.username || 'U').charAt(0).toUpperCase()}</div>
+                                <div class="user-list-info">
+                                    <div class="user-list-name">${escapeHtml(user.display_name || user.username)}</div>
+                                    <div class="user-list-username">@${escapeHtml(user.username)}</div>
+                                </div>
+                                <button class="user-list-action" onclick="window.addAdminToChannel(${user.id})">Назначить</button>
+                            </div>
+                        `).join('') : '<div class="empty-state">Ничего не найдено</div>';
+                    }
+                });
+            }
+            
+            const subSearch = document.getElementById('subscriberSearchInput');
+            if (subSearch) {
+                subSearch.addEventListener('input', (e) => {
+                    const q = e.target.value.toLowerCase();
+                    const filtered = subscribersList.filter(u => 
+                        (u.username || '').toLowerCase().includes(q) || 
+                        (u.display_name || '').toLowerCase().includes(q)
+                    );
+                    const container = document.getElementById('subscribersList');
+                    const canRemove = channel?.is_owner || channel?.is_admin;
+                    if (container) {
+                        container.innerHTML = filtered.length ? filtered.map(sub => `
+                            <div class="user-list-item">
+                                <div class="user-list-avatar">${sub.avatar ? `<img src="${escapeHtml(sub.avatar)}">` : (sub.display_name || sub.username || 'U').charAt(0).toUpperCase()}</div>
+                                <div class="user-list-info">
+                                    <div class="user-list-name">${escapeHtml(sub.display_name || sub.username)} ${sub.is_owner ? '<span class="user-list-badge">Создатель</span>' : ''} ${sub.is_admin ? '<span class="user-list-badge">Админ</span>' : ''}</div>
+                                    <div class="user-list-username">@${escapeHtml(sub.username)}</div>
+                                </div>
+                                ${canRemove && !sub.is_owner ? `<button class="user-list-action" onclick="window.removeSubscriberFromChannel(${sub.id})">Удалить</button>` : ''}
+                            </div>
+                        `).join('') : '<div class="empty-state">Ничего не найдено</div>';
+                    }
+                });
+            }
+            
+            const content = document.getElementById('channelContent');
+            const headerTitle = document.getElementById('headerTitle');
+            content.addEventListener('scroll', () => {
+                const scrollY = content.scrollTop;
+                const opacity = Math.min(1, scrollY / 100);
+                headerTitle.style.opacity = opacity;
+                const avatarSection = document.querySelector('.avatar-section');
+                if (avatarSection) {
+                    if (scrollY > 60) avatarSection.classList.add('shrink');
+                    else avatarSection.classList.remove('shrink');
+                }
+            });
+        };
+
+        document.getElementById('backBtn').addEventListener('click', () => history.back());
+        document.getElementById('editTopBtn').addEventListener('click', openEditor);
+        document.getElementById('editorCloseBtn').addEventListener('click', closeEditor);
+        document.getElementById('editorCancelBtn').addEventListener('click', closeEditor);
+        document.getElementById('editorSaveBtn').addEventListener('click', saveChannel);
+        document.getElementById('uploadAvatarBtn').addEventListener('click', handleAvatarUpload);
+        document.getElementById('toggleTypeBtn')?.addEventListener('click', toggleChannelType);
+        document.getElementById('sheetCloseBtn').addEventListener('click', () => document.getElementById('sheet').classList.remove('show'));
+        document.getElementById('sheet').addEventListener('click', (e) => { if (e.target.id === 'sheet') document.getElementById('sheet').classList.remove('show'); });
+
+        window.addAdminToChannel = addAdminToChannel;
+        window.removeAdminFromChannel = removeAdminFromChannel;
+        window.removeSubscriberFromChannel = removeSubscriberFromChannel;
+
+        setupReportModal();
+        init();
+    })();
+</script>
+</body>
+</html>
